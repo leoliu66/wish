@@ -1,0 +1,218 @@
+<!-- 学生管理@author leo -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-form toolbar">
+            学号：<input id="stunoo" name="stunoo" class="layui-input search-input" type="text" placeholder="请输入学号"/>&emsp;
+            姓名：<input id="stuNamee" name="stuNamee" class="layui-input search-input" type="text" placeholder="请输入姓名"/>&emsp;
+             手机号：<input id="parentPhonee" name="parentPhonee" class="layui-input search-input" type="text" placeholder="请输入手机号"/>&emsp;
+         <button id="student-btn-search" class="layui-btn icon-btn student_auth" data-auth="schpay:basics:student:query"><i class="layui-icon">&#xe615;</i>搜索</button>
+         <button id="student-btn-add" class="layui-btn icon-btn student_auth" data-auth="schpay:basics:student:add"><i class="layui-icon">&#xe654;</i>添加</button>
+	     <button id="student-btn-import" class="layui-btn icon-btn student_auth" data-auth="schpay:basics:student:import"><i class="layui-icon">&#xe615;</i>批量导入</button>
+         <button id="student-btn-exprotDownload" class="layui-btn icon-btn student_auth" data-auth="schpay:basics:student:exportDownload"><i class="layui-icon">&#xe654;</i>下载导入模板</button>
+        </div>
+        <div id="userLayTable">
+            <table class="layui-table" id="student-table" lay-filter="student-table"></table>
+        </div>
+    </div>
+</div>
+<style>
+    #userLayTable tbody .layui-table-click{background-color: #ccffeb !important;}
+</style>
+<script>
+    var pageIndex = 1;
+    layui.use(['form', 'table', 'util', '_config', 'admin'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var _config = layui._config;
+        var layer = layui.layer;
+        var util = layui.util;
+        var admin = layui.admin;
+        var stuNo = $("#stunoo").val();
+        var stuName = $("#stuNamee").val();
+        var parentPhone = $("#parentPhonee").val();
+		
+        // 渲染表格
+        table.render({
+            elem: '#student-table',
+            url: _config.base_server + '/admin/student/queryStudent',
+            method: 'GET',
+            where: {
+            	stuNo:stuNo,
+            	stuName:stuName,
+            	parentPhone:parentPhone
+            },
+            page: true,
+            even: true, //开启隔行背景
+            limit:10,
+            cols: [[
+                {type: 'numbers'},
+                {field: 'stuClass', sort: false, title: '班级'},
+                {field: 'stuName', sort: false, title: '姓名'},
+                {field: 'stuNo', sort: false, title: '学号'},
+                {field: 'parentPhone', sort: false, title: '手机号码'},
+                {
+                    sort: true, templet: function (d) {
+                        return util.toDateString(d.createTime);
+                    }, title: '创建时间'
+                },
+                {field: 'createUserName', sort: false, title: '创建人'},
+                {align: 'center', templet: function(d){
+                        var auth = JSON.parse(sessionStorage.getItem("auth"));
+                        var page = location.hash.substring(2);
+                        var btn = '';
+                        if(auth[page] && auth[page]['schpay:basics:student:add']){
+                            btn += '<a class="student_auth layui-btn layui-btn-xs" lay-event="edit">修改</a>';
+                        }
+                        if(btn == ''){
+                            return '修改';
+                        }else{
+                            return btn;
+                        }
+                    }, title: '操作'},
+                    {align: 'left', templet: function(d){
+                    	 var auth = JSON.parse(sessionStorage.getItem("auth"));
+                     	var page = location.hash.substring(2);
+                 		var swiftBtn = '';
+                     	if(auth[page] && auth[page]['schpay:basics:student:active']){
+                     		if(d.stuStatus == 'N'){
+                     			swiftBtn ='&nbsp;<input type="checkbox" lay-filter="menu-tpl-state" value="'+d.id+'" lay-skin="switch" lay-text="正常|锁定"/>';
+                     		}else{
+                     			swiftBtn ='&nbsp;<input type="checkbox" lay-filter="menu-tpl-state" value="'+d.id+'" lay-skin="switch" lay-text="正常|锁定" checked="checked"/>';
+                     		}
+                 	    }
+                     	
+                     	if((swiftBtn) == ''){
+                     		return '无权限';
+                     	}else{
+                     		return swiftBtn;
+                     	}
+                    }, title: '状态'}
+            ]],
+            done: function(res, curr, count){
+                var data = res.data;
+                pageIndex=curr;
+                console.info("page:"+pageIndex);
+                $('.layui-table-body tr').each(function(i){
+                    var index = $(this).attr('data-index');
+                    $(this).click(function(){
+                        var fals = $(this).hasClass('layui-table-click');
+                        if(!fals){
+                            $(this).addClass('layui-table-click');
+                        }else{
+                            $(this).removeClass('layui-table-click');
+                        }
+                    });
+
+                });
+            }
+        });
+        //修改学生信息
+        form.on('switch(menu-tpl-state)', function (obj) {
+            layer.load(2);
+            admin.req('/admin/student/changgeStudentStatus', {
+                id: obj.elem.value,
+                isShow: obj.elem.checked ? 'Y' : 'N'
+            }, function (data) {
+                layer.closeAll('loading');
+                if (data.success) {
+                    form.render('checkbox');
+                    //admin.refresh();
+                } else {
+                    layer.msg(data.message, {icon: 2});
+                    $(obj.elem).prop('checked', !obj.elem.checked);
+                    form.render('checkbox');
+                }
+            }, 'GET');
+        });
+
+        // 添加按钮点击事件
+        $('#student-btn-add').click(function () {
+            showEditModel(null,null,'添加学生');
+        });
+
+        // 工具条点击事件
+        table.on('tool(student-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') { // 修改
+                showEditModel(data,obj,'修改学生');
+            } else if(layEvent === 'active'){
+                showDelModel(data,obj);
+            }
+        });
+
+        //修改或添加
+        var showEditModel = function (data,obj,title) {
+            console.info("showEditModel:"+JSON.stringify(data));
+            if(data){
+                admin.putTempData('student_manage_from', data);
+                admin.popupCenter({
+                    title: title,
+                    path: 'pages/schpay/student_manage_form.html',
+                    finish: function () {
+                        table.reload('student-table', {});
+                    }
+                });
+
+            }else{
+                admin.putTempData('student_manage_from', {});
+                admin.popupCenter({
+                    title: title,
+                    path: 'pages/schpay/student_manage_form.html',
+                    finish: function () {
+                        table.reload('student-table', {});
+                    }
+                });
+            }
+
+        };
+
+        // 搜索按钮点击事件
+        $('#student-btn-search').click(function () {
+        	 var stuNo = $("#stunoo").val();
+             var stuName = $("#stuNamee").val();
+             var parentPhone = $("#parentPhonee").val();
+            table.reload('student-table', {page: {
+                    curr: 1 //重新从第 1 页开始
+                },where: {stuNo:stuNo,stuName:stuName,parentPhone:parentPhone}});
+        });
+        // 模板导出
+        $('#student-btn-exprotDownload').click(function () {
+        	 window.location.href=_config.base_server + '/admin/student/downloadStudentExcel';
+        });
+     	//模板导入
+
+        layui.use(['element','upload'], function() {
+        	element = layui.element;
+        	upload = layui.upload;
+         
+        	//指定允许上传的文件类型
+        	upload.render({
+        	  elem: '#student-btn-import',
+        	  url: _config.base_server + '/admin/student/studentImport',
+        	  accept: 'file', //普通文件
+              multiple: true,
+        	  done: function(data){
+        		  if (data.success) {
+                      layer.msg(data.message, {icon: 1,time:3000});
+                  } else {
+                      layer.msg(data.message, {icon: 2,time:3000});
+                  }
+                  table.reload('student-table', {});
+        	   }
+        	});
+        });
+
+    });
+
+    var auth = JSON.parse(sessionStorage.getItem("auth"));
+    var page = location.hash.substring(2);
+    $(".student_auth").each(function(index, item) {
+        var buttonAuth = $(item).attr("data-auth");
+        if( !auth[page] || auth[page][buttonAuth] != 1 ){
+            $(item).remove();
+        }
+    });
+
+</script>

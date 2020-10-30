@@ -1,0 +1,76 @@
+<!-- 渠道管理 @author 刘露leo -->
+<!-- 表单弹窗 -->
+<form id="channel-manage-form" lay-filter="channel-manage-form" class="layui-form model-form">
+    <!-- <div style="height:500px;width:440px;overflow:auto"> -->
+   	<input id="id" name="id" type="hidden"/>
+   	<div class="layui-form-item loginName-hide">
+        <label class="layui-form-label">登陆名</label>
+        <div class="layui-input-block">
+            <input id="loginName" name="loginName" placeholder="请输入登录名" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>  	
+    <div class="layui-form-item">
+        <label class="layui-form-label">渠道编号</label>
+        <div class="layui-input-block">
+            <input id="channelNo" name="channelNo" placeholder="请输入渠道编号" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">渠道名称</label>
+        <div class="layui-input-block">
+            <input id="channelName" name="channelName" placeholder="请输入渠道名称" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+	    	    	    
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="channel-manage-form-submit" data-auth="schpay:basics:channel:save" lay-submit>保存</button>
+    </div>
+</form>
+
+<script>	
+var Id = null;
+    layui.use(['layer', 'admin', 'form', 'formSelects'], function () {
+        var layer = layui.layer;
+        var admin = layui.admin;
+        var form = layui.form;
+        var formSelects = layui.formSelects;
+               
+        var mchconf = admin.getTempData('t_mch_conf');
+        $('#channel-manage-form').attr('method', 'POST');
+        if (JSON.stringify(mchconf)!='{}') {
+        	Id = mchconf.id;
+            form.val('channel-manage-form', mchconf);
+
+            $(".loginName-hide").hide();
+            $("#loginName").removeAttr("lay-verify");
+            
+        }
+        form.render();//表单重新渲染
+        
+        // 表单提交事件
+         form.on('submit(channel-manage-form-submit)', function (data) {
+            layer.load(2);    
+            var url = "/admin/channel/addchannel";
+            //var isSave = true;
+            if(Id != null && Id != ''){
+            	url = "/admin/channel/updatechannel";
+            	//isSave = false;        
+            }
+            admin.req( url, data.field, function (data) {
+                layer.closeAll('loading');
+                if (data.status == 0) {
+                	layer.msg(data.msg, {icon: 1, time: 5000});
+                    admin.finishPopupCenter();
+                } else {
+                    layer.msg(data.msg, {icon: 5,time: 1500});
+                }
+            }, $('#channel-manage-form').attr('method'));
+            return false;
+        });
+    });
+    
+</script>

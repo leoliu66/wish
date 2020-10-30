@@ -1,0 +1,377 @@
+<!-- 财务明细 @author 刘露leo -->
+<div class="layui-finance">
+    <div class="layui-finance-body">
+        <div class="layui-finance-form toolbar">
+            &emsp;创建时间：
+            <input type="text" id="financeStartDate" name="financeStartDate" class="layui-input search-input"
+                   placeholder="开始时间">&emsp; 至 &emsp;
+            <input type="text" id="financeEndDate" name="financeEndDate" class="layui-input search-input"
+                   placeholder="结束时间">
+            <button id="before-date" class="layui-btn layui-btn-radius layui-btn-normal">前一天</button>
+            <button id="after-date" class="layui-btn layui-btn-radius layui-btn-normal">后一天</button>&emsp;
+            负责人：<input id="principal" name="principal" placeholder="请输入负责人名称" type="text"
+                       class="layui-input search-input"/>&emsp;
+            负责人手机号：<input id="principalPhone" name="principalPhone" placeholder="请输入负责人手机号" type="text"
+                          class="layui-input search-input"/>&emsp;
+            <br/><br/>
+            &emsp;财务类型：
+            <select id="moneyType" name="moneyType" class="layui-input search-input">
+                <option value="">请选择财务类型</option>
+                <option value="income">收入</option>
+                <option value="expend">支出</option>
+            </select>
+            &emsp;创建人：<input id="createBy" name="createBy" placeholder="请输入创建人" type="text"
+                             class="layui-input search-input"/>&emsp;
+            &emsp;
+            <button id="finance-list-btn-search" class="layui-btn icon-btn finance_list_auth"
+                    data-auth="sys:finance:detail:qry"><i class="layui-icon">&#xe615;</i>搜索
+            </button>
+            <br/><br/>&emsp;
+            <button id="finance-btn-add" class="layui-btn icon-btn" data-auth="sys:finance:detail:add">
+                <i class="layui-icon">&#xe654;</i>新增
+            </button>&emsp;
+            <button id="finance-btn-export" class="layui-btn icon-btn"
+                    data-auth="sys:finance:detail:export"><i class="layui-icon">&#xe67d;</i>导出
+            </button>
+
+        </div>
+
+    </div>
+    <div id="userLayTable">
+        <table class="layui-table" id="finance-manage-table" lay-filter="finance-manage-table"></table>
+    </div>
+</div>
+</div>
+<style>
+    #userLayTable tbody .layui-table-click {
+        background-color: #ccffeb !important;
+    }
+</style>
+<script>
+    var pageIndex = 2;
+    layui.use(['form', 'table', 'util', '_config', 'admin', 'formSelects', 'laydate'], function () {
+        var laydate = layui.laydate;
+        var form = layui.form;
+        var table = layui.table;
+        var _config = layui._config;
+        var layer = layui.layer;
+        var util = layui.util;
+        var admin = layui.admin;
+        var formSelects = layui.formSelects;
+        var stDates = $("#financeStartDate").val();
+        var edDate = $("#financeEndDate").val();
+        var principal = $('#principal').val();//负责人
+        var principalPhone = $('#principalPhone').val();//负责人手机号
+        var moneyType = $('#moneyType').val();//财务类型
+        var createBy = $('#createBy').val();//创建人
+
+        if (stDates == '') {
+            stDates = nextDate(30, "reduce", "");
+        }
+        if (edDate == '') {
+            edDate = dateFtt('yyyy-MM-dd hh:mm:ss', new Date());
+        }
+
+        // 渲染表格
+        table.render({
+            elem: '#finance-manage-table',
+            url: _config.base_server + '/admin/finance/list',
+            method: 'GET',
+            //contentType: "application/json;charset=UTF-8",
+            where: {
+                principal: principal,
+                principalPhone: principalPhone,
+                sdstrdate: stDates,
+                edstrdate: edDate,
+                moneyType: moneyType,
+                createBy: createBy
+            },
+            page: true,
+            even: true, //开启隔行背景
+            limit: 10,
+            cols: [[
+                {type: 'numbers'},
+                {field: 'principal', width: 100, sort: true, title: '负责人'},
+                {field: 'principalPhone', width: 120, sort: false, title: '负责人手机号'},
+                {field: 'money', width: 120, sort: true, title: '金额（元）'},
+                {
+                    field: 'moneyType', width: 100, sort: false, templet: function (d) {
+                        var moneyType = d.moneyType;
+                        if (moneyType == 'income') {
+                            return "收入";
+                        } else if (moneyType == 'expend') {
+                            return "支出";
+                        } else {
+                            return "";
+                        }
+                    }, title: '财务类型'
+                },
+                {field: 'createBy', sort: false, width: 100, title: '创建人'},
+                {
+                    width: 160, sort: false, templet: function (d) {
+                        return util.toDateString(d.createDate);
+                    }, title: '创建时间'
+                },
+                {field: 'resource', sort: false, width: 100, title: '来源或去向'},
+                {field: 'remarks', sort: false, width: 100, title: '备注'},
+                {field: 'images', sort: false, title: '凭证地址'},
+                {
+                    align: 'center', width: 200, templet: function (d) {
+                        var auth = JSON.parse(sessionStorage.getItem("auth"));
+                        var page = location.hash.substring(2);
+                        var btn = '';
+                        if (auth[page] && auth[page]['sys:finance:detail:update']) {
+                            btn += '<a class="layui-btn layui-btn-xs" lay-event="edit" >修改</a>';
+                        }
+                        if (auth[page] && auth[page]['sys:finance:detail:qryhis']) {
+                            btn += '<a class="layui-btn layui-btn-xs" lay-event="qryhis" >历史</a>';
+                        }
+                        if (btn == '') {
+                            return '无权限';
+                        } else {
+                            return btn;
+                        }
+                    }, title: '操作'
+                }
+            ]],
+            done: function (res, curr, count) {
+                var data = res.data;
+                pageIndex = curr;
+                //console.info("page:" + pageIndex);
+                $('.layui-table-body tr').each(function (i) {
+                    var index = $(this).attr('data-index');
+                    $(this).click(function () {
+                        var fals = $(this).hasClass('layui-table-click');
+                        if (!fals) {
+                            $(this).addClass('layui-table-click');
+                        } else {
+                            $(this).removeClass('layui-table-click');
+                        }
+                    });
+
+                });
+            }
+        });
+
+        // 搜索按钮点击事件
+        $('#finance-list-btn-search').click(function () {
+            var stDates = $("#financeStartDate").val();
+            var edDate = $("#financeEndDate").val();
+            var principal = $('#principal').val();//负责人
+            var principalPhone = $('#principalPhone').val();//负责人手机号
+            var moneyType = $('#moneyType').val();//财务类型
+            var createBy = $('#createBy').val();//创建人
+
+            if (compareDate(stDates, edDate)) {
+                layer.msg('请选择正确的时间段!', {icon: 2});
+                return false;
+            }
+
+            table.reload('finance-manage-table', {
+                where: {
+                    principal: principal,
+                    principalPhone: principalPhone,
+                    sdstrdate: stDates,
+                    edstrdate: edDate,
+                    moneyType: moneyType,
+                    createBy: createBy
+                }, page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            });
+        });
+
+        // 添加按钮点击事件
+        $('#finance-btn-add').click(function () {
+            showEditModel(null, null, '新增财务记录');
+        });
+
+        // 工具条点击事件
+        table.on('tool(finance-manage-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') { // 修改
+                showEditModel(data, obj, '修改财务记录');
+            }
+        });
+
+        //修改或添加
+        var showEditModel = function (data, obj, title) {
+            admin.putTempData('finance_detail_form', data);
+            if (data) {
+                //console.info("修改财务记录:" + JSON.stringify(data));
+                admin.popupCenter({
+                    title: title,
+                    path: 'pages/wish/finance_detail_form.html',
+                    finish: function () {
+                        table.reload('finance-manage-table', {});
+                    }
+                });
+            } else {
+                admin.popupCenter({
+                    title: title,
+                    path: 'pages/wish/finance_detail_form.html',
+                    finish: function () {
+                        table.reload('finance-manage-table', {});
+                    }
+                });
+            }
+        };
+
+        // 导出
+        $('#finance-btn-export').click(function () {
+
+            var principal = $("#principal").val();
+            var principalPhone = $("#principalPhone").val();
+            var createBy = $("#createBy").val();
+            var sdstrdate = $("#financeStartDate").val();
+            var edstrdate = $("#financeEndDate").val();
+            var moneyType = $('select[name="moneyType"]').val();
+            if(sdstrdate !=null && sdstrdate !="" && (edstrdate ==null || edstrdate =="")){
+                layer.msg('请选择结束时间!', {icon: 2});
+                return false;
+            }
+            if(edstrdate !=null && edstrdate !="" && (sdstrdate ==null ||  sdstrdate =="")){
+                layer.msg('请选择开始时间!', {icon: 2});
+                return false;
+            }
+            if(compareDate(sdstrdate,edstrdate)){
+                layer.msg('结束时间需要大于开始时间!', {icon: 2});
+                return false;
+            }
+            if(sdstrdate !=null && sdstrdate !="" && edstrdate !=null && edstrdate !=""){
+                if(getDateSix(sdstrdate,edstrdate)){
+                    layer.msg('开始时间和结束时间跨度不能超过6个月!', {icon: 2});
+                    return false;
+                }
+            }
+            window.location.href=_config.base_server
+                + "/admin/finance/export?principal="+principal+"&principalPhone="+principalPhone+"&createBy="+createBy+"&sdstrdate="+sdstrdate+"&edstrdate="+edstrdate+"&moneyType="+moneyType;
+
+        });
+
+        //日期时间选择器
+        financeStartDate(nextDate(30, "reduce", ""), laydate);
+        //日期时间选择器 获取当前时间增加一小时
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = d.getMonth();
+        var day = d.getDate();
+        var hour = d.getHours();
+        var min = d.getMinutes();
+        var s = d.getSeconds();
+        d = new Date(year, month, day, hour + 1, min, s);
+        financeEndDate(d, laydate);
+    });
+    //layui.use结束
+
+
+    var auth = JSON.parse(sessionStorage.getItem("auth"));
+    var page = location.hash.substring(2);
+    $(".finance_list_auth").each(function (index, item) {
+        var buttonAuth = $(item).attr("data-auth");
+        if (!auth[page] || auth[page][buttonAuth] != 1) {
+            console.info(auth[page] + "==" + auth[page][buttonAuth]);
+            $(item).remove();
+        }
+    });
+    //获取前一天
+    $('#before-date').click(function () {
+        var stDates = $("#financeStartDate").val();
+        var edDate = $("#financeEndDate").val();
+
+        $("#financeStartDate").val(nextDate(1, "reduce", stDates));
+        $("#financeEndDate").val(nextDate(1, "reduce", edDate));
+    });
+
+    //获取后一天
+    $('#after-date').click(function () {
+        var stDates = $("#financeStartDate").val();
+        var edDate = $("#financeEndDate").val();
+
+        $("#financeStartDate").val(nextDate(1, "add", stDates));
+        $("#financeEndDate").val(nextDate(1, "add", edDate));
+    });
+
+    function financeEndDate(date, laydate) {
+        laydate.render({
+            elem: '#financeEndDate'
+            , type: 'datetime'
+            , value: date
+            , btns: ['now', 'confirm']
+        });
+    }
+
+    function financeStartDate(date, laydate) {
+        laydate.render({
+            elem: '#financeStartDate'
+            , type: 'datetime'
+            , value: date
+            , btns: ['now', 'confirm']
+        });
+    }
+
+    //日期比较
+    function compareDate(s1, s2) {
+        return ((new Date(s1.replace(/-/g, "\/"))) > (new Date(s2.replace(/-/g, "\/"))));
+    }
+
+    //日期比较 是否相差六个月
+    function getDateSix(sDate, eDate) {
+        var sDate = new Date(sDate);
+        var eDate = new Date(eDate);
+        if (eDate.getFullYear() - sDate.getFullYear() >= 1) {//先比较年
+            if(eDate.getMonth()+12 - sDate.getMonth() > 6) {
+                return true;
+            }else if (eDate.getDate() - sDate.getDate() >= 1) {
+                return true;
+            }
+        }else{
+            if(eDate.getMonth() - sDate.getMonth() > 6) {//再比较月
+                return true;
+            }else if(eDate.getMonth() - sDate.getMonth() == 6){
+                if (eDate.getDate() - sDate.getDate() >= 1) {//再比较天
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    //获取指定天数时间
+    function nextDate(day, types, times) {
+        var curDate;
+        if (times == '') {
+            curDate = new Date();
+        } else {
+            curDate = new Date(times);
+        }
+
+        var nextDate = "";
+        if (types == 'add') {
+            nextDate = new Date(curDate.getTime() + day * 24 * 60 * 60 * 1000); //后多少天
+        } else {
+            nextDate = new Date(curDate.getTime() - day * 24 * 60 * 60 * 1000); //前多少天
+        }
+        return dateFtt('yyyy-MM-dd hh:mm:ss', nextDate);
+    }
+
+    function dateFtt(fmt, date) { //author: meizz
+        var o = {
+            "M+": date.getMonth() + 1,                 //月份
+            "d+": date.getDate(),                    //日
+            "h+": date.getHours(),                   //小时
+            "m+": date.getMinutes(),                 //分
+            "s+": date.getSeconds(),                 //秒
+            "q+": Math.floor((date.getMonth() + 3) / 3), //季度
+            "S": date.getMilliseconds()             //毫秒
+        };
+        if (/(y+)/.test(fmt))
+            fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt))
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+    }
+</script>

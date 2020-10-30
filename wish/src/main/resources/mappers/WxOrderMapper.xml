@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.leo.rdp.wish.dao.WxOrderMapper">
+    <resultMap id="BaseResultMap" type="cn.leo.rdp.wish.entity.WxOrder">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="new_record" jdbcType="VARCHAR" property="newRecord"/>
+        <result column="order_id" jdbcType="VARCHAR" property="orderId"/>
+        <result column="contacts" jdbcType="VARCHAR" property="contacts"/>
+        <result column="contacts_phone" jdbcType="VARCHAR" property="contactsPhone"/>
+        <result column="salesman" jdbcType="VARCHAR" property="salesman"/>
+        <result column="salesman_phone" jdbcType="VARCHAR" property="salesmanPhone"/>
+        <result column="business" jdbcType="VARCHAR" property="business"/>
+        <result column="business_phone" jdbcType="VARCHAR" property="businessPhone"/>
+        <result column="developer" jdbcType="VARCHAR" property="developer"/>
+        <result column="developer_phone" jdbcType="VARCHAR" property="developerPhone"/>
+        <result column="order_status" jdbcType="VARCHAR" property="orderStatus"/>
+        <result column="pay_status" jdbcType="VARCHAR" property="payStatus"/>
+        <result column="cost" jdbcType="DECIMAL" property="cost"/>
+        <result column="down_payment" jdbcType="DECIMAL" property="downPayment"/>
+        <result column="final_payment" jdbcType="DECIMAL" property="finalPayment"/>
+        <result column="money" jdbcType="DECIMAL" property="money"/>
+        <result column="discount_amount" jdbcType="DECIMAL" property="discountAmount"/>
+        <result column="all_money" jdbcType="DECIMAL" property="allMoney"/>
+        <result column="texture" jdbcType="VARCHAR" property="texture"/>
+        <result column="print" jdbcType="VARCHAR" property="print"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_date" jdbcType="TIMESTAMP" property="updateDate"/>
+        <result column="remarks" jdbcType="VARCHAR" property="remarks"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, order_id, new_record, contacts, contacts_phone, salesman, salesman_phone, business, business_phone,
+    developer, developer_phone, order_status, pay_status, cost, down_payment, final_payment, 
+    money, discount_amount, all_money, texture, print, create_by, create_date, update_by,
+    update_date, remarks
+  </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from wx_order
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from wx_order
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <insert id="insert" parameterType="cn.leo.rdp.wish.entity.WxOrder">
+    insert into wx_order (id, order_id, new_record, contacts,
+      contacts_phone, salesman, salesman_phone, 
+      business, business_phone, developer, 
+      developer_phone, order_status, pay_status, 
+      cost, down_payment, final_payment, 
+      money, discount_amount, all_money,
+      texture, print, create_by, 
+      create_date, update_by, update_date, 
+      remarks)
+    values (#{id,jdbcType=BIGINT}, #{orderId,jdbcType=VARCHAR}, #{newRecord,jdbcType=VARCHAR}, #{contacts,jdbcType=VARCHAR},
+      #{contactsPhone,jdbcType=VARCHAR}, #{salesman,jdbcType=VARCHAR}, #{salesmanPhone,jdbcType=VARCHAR}, 
+      #{business,jdbcType=VARCHAR}, #{businessPhone,jdbcType=VARCHAR}, #{developer,jdbcType=VARCHAR}, 
+      #{developerPhone,jdbcType=VARCHAR}, #{orderStatus,jdbcType=VARCHAR}, #{payStatus,jdbcType=VARCHAR}, 
+      #{cost,jdbcType=DECIMAL}, #{downPayment,jdbcType=DECIMAL}, #{finalPayment,jdbcType=DECIMAL}, 
+      #{money,jdbcType=DECIMAL}, #{discountAmount,jdbcType=DECIMAL}, #{allMoney,jdbcType=DECIMAL}, 
+      #{texture,jdbcType=VARCHAR}, #{print,jdbcType=VARCHAR}, #{createBy,jdbcType=VARCHAR}, 
+      #{createDate,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR}, #{updateDate,jdbcType=TIMESTAMP}, 
+      #{remarks,jdbcType=VARCHAR})
+  </insert>
+    <insert id="insertSelective" parameterType="cn.leo.rdp.wish.entity.WxOrder">
+        insert into wx_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="orderId != null">
+                order_id,
+            </if>
+            <if test="newRecord != null">
+                new_record,
+            </if>
+            <if test="contacts != null">
+                contacts,
+            </if>
+            <if test="contactsPhone != null">
+                contacts_phone,
+            </if>
+            <if test="salesman != null">
+                salesman,
+            </if>
+            <if test="salesmanPhone != null">
+                salesman_phone,
+            </if>
+            <if test="business != null">
+                business,
+            </if>
+            <if test="businessPhone != null">
+                business_phone,
+            </if>
+            <if test="developer != null">
+                developer,
+            </if>
+            <if test="developerPhone != null">
+                developer_phone,
+            </if>
+            <if test="orderStatus != null">
+                order_status,
+            </if>
+            <if test="payStatus != null">
+                pay_status,
+            </if>
+            <if test="cost != null">
+                cost,
+            </if>
+            <if test="downPayment != null">
+                down_payment,
+            </if>
+            <if test="finalPayment != null">
+                final_payment,
+            </if>
+            <if test="money != null">
+                money,
+            </if>
+            <if test="discountAmount != null">
+                discount_amount,
+            </if>
+            <if test="allMoney != null">
+                all_money,
+            </if>
+            <if test="texture != null">
+                texture,
+            </if>
+            <if test="print != null">
+                print,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createDate != null">
+                create_date,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateDate != null">
+                update_date,
+            </if>
+            <if test="remarks != null">
+                remarks,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="orderId != null">
+                #{orderId,jdbcType=VARCHAR},
+            </if>
+            <if test="newRecord != null">
+                #{newRecord,jdbcType=VARCHAR},
+            </if>
+            <if test="contacts != null">
+                #{contacts,jdbcType=VARCHAR},
+            </if>
+            <if test="contactsPhone != null">
+                #{contactsPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="salesman != null">
+                #{salesman,jdbcType=VARCHAR},
+            </if>
+            <if test="salesmanPhone != null">
+                #{salesmanPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="business != null">
+                #{business,jdbcType=VARCHAR},
+            </if>
+            <if test="businessPhone != null">
+                #{businessPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="developer != null">
+                #{developer,jdbcType=VARCHAR},
+            </if>
+            <if test="developerPhone != null">
+                #{developerPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="orderStatus != null">
+                #{orderStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="payStatus != null">
+                #{payStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="cost != null">
+                #{cost,jdbcType=DECIMAL},
+            </if>
+            <if test="downPayment != null">
+                #{downPayment,jdbcType=DECIMAL},
+            </if>
+            <if test="finalPayment != null">
+                #{finalPayment,jdbcType=DECIMAL},
+            </if>
+            <if test="money != null">
+                #{money,jdbcType=DECIMAL},
+            </if>
+            <if test="discountAmount != null">
+                #{discountAmount,jdbcType=DECIMAL},
+            </if>
+            <if test="allMoney != null">
+                #{allMoney,jdbcType=DECIMAL},
+            </if>
+            <if test="texture != null">
+                #{texture,jdbcType=VARCHAR},
+            </if>
+            <if test="print != null">
+                #{print,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createDate != null">
+                #{createDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateDate != null">
+                #{updateDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="remarks != null">
+                #{remarks,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="cn.leo.rdp.wish.entity.WxOrder">
+        update wx_order
+        <set>
+            <if test="orderId != null">
+                order_id = #{orderId,jdbcType=VARCHAR},
+            </if>
+            <if test="newRecord != null">
+                new_record = #{newRecord,jdbcType=VARCHAR},
+            </if>
+            <if test="contacts != null">
+                contacts = #{contacts,jdbcType=VARCHAR},
+            </if>
+            <if test="contactsPhone != null">
+                contacts_phone = #{contactsPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="salesman != null">
+                salesman = #{salesman,jdbcType=VARCHAR},
+            </if>
+            <if test="salesmanPhone != null">
+                salesman_phone = #{salesmanPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="business != null">
+                business = #{business,jdbcType=VARCHAR},
+            </if>
+            <if test="businessPhone != null">
+                business_phone = #{businessPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="developer != null">
+                developer = #{developer,jdbcType=VARCHAR},
+            </if>
+            <if test="developerPhone != null">
+                developer_phone = #{developerPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="orderStatus != null">
+                order_status = #{orderStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="payStatus != null">
+                pay_status = #{payStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="cost != null">
+                cost = #{cost,jdbcType=DECIMAL},
+            </if>
+            <if test="downPayment != null">
+                down_payment = #{downPayment,jdbcType=DECIMAL},
+            </if>
+            <if test="finalPayment != null">
+                final_payment = #{finalPayment,jdbcType=DECIMAL},
+            </if>
+            <if test="money != null">
+                money = #{money,jdbcType=DECIMAL},
+            </if>
+            <if test="discountAmount != null">
+                discount_amount = #{discountAmount,jdbcType=DECIMAL},
+            </if>
+            <if test="allMoney != null">
+                all_money = #{allMoney,jdbcType=DECIMAL},
+            </if>
+            <if test="texture != null">
+                texture = #{texture,jdbcType=VARCHAR},
+            </if>
+            <if test="print != null">
+                print = #{print,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createDate != null">
+                create_date = #{createDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateDate != null">
+                update_date = #{updateDate,jdbcType=TIMESTAMP},
+            </if>
+            <if test="remarks != null">
+                remarks = #{remarks,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="cn.leo.rdp.wish.entity.WxOrder">
+    update wx_order
+    set
+      order_id = #{orderId,jdbcType=VARCHAR},
+      new_record = #{newRecord,jdbcType=VARCHAR},
+      contacts = #{contacts,jdbcType=VARCHAR},
+      contacts_phone = #{contactsPhone,jdbcType=VARCHAR},
+      salesman = #{salesman,jdbcType=VARCHAR},
+      salesman_phone = #{salesmanPhone,jdbcType=VARCHAR},
+      business = #{business,jdbcType=VARCHAR},
+      business_phone = #{businessPhone,jdbcType=VARCHAR},
+      developer = #{developer,jdbcType=VARCHAR},
+      developer_phone = #{developerPhone,jdbcType=VARCHAR},
+      order_status = #{orderStatus,jdbcType=VARCHAR},
+      pay_status = #{payStatus,jdbcType=VARCHAR},
+      cost = #{cost,jdbcType=DECIMAL},
+      down_payment = #{downPayment,jdbcType=DECIMAL},
+      final_payment = #{finalPayment,jdbcType=DECIMAL},
+      money = #{money,jdbcType=DECIMAL},
+      discount_amount = #{discountAmount,jdbcType=DECIMAL},
+      all_money = #{allMoney,jdbcType=DECIMAL},
+      texture = #{texture,jdbcType=VARCHAR},
+      print = #{print,jdbcType=VARCHAR},
+      create_by = #{createBy,jdbcType=VARCHAR},
+      create_date = #{createDate,jdbcType=TIMESTAMP},
+      update_by = #{updateBy,jdbcType=VARCHAR},
+      update_date = #{updateDate,jdbcType=TIMESTAMP},
+      remarks = #{remarks,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+    <select id="findListByVo" parameterType="cn.leo.rdp.wish.allbean.vo.QueryOrderInfoVo" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from wx_order t
+        <where>
+            <if test="contacts !=null and contacts!=''">
+                and t.contacts like concat('%', #{contacts},'%')
+            </if>
+            <if test="contactsPhone !=null and contactsPhone!=''">
+                and t.contacts_phone like concat('%', #{contactsPhone},'%')
+            </if>
+            <if test="payStatus !=null and payStatus!=''">
+                and t.pay_status = #{payStatus}
+            </if>
+            <if test="orderStatus !=null and orderStatus!=''">
+                and t.order_status = #{orderStatus}
+            </if>
+            <if test="createBy !=null and createBy!=''">
+                and t.create_by = #{createBy}
+            </if>
+            <if test="newRecord !=null and newRecord!=''">
+                and t.new_record = #{newRecord}
+            </if>
+            <if test="sdstrdate !=null">
+                and t.create_date <![CDATA[>=]]> #{sdstrdate}
+            </if>
+            <if test="edstrdate !=null">
+                and t.create_date <![CDATA[<=]]> #{edstrdate}
+            </if>
+
+        </where>
+        <if test="sortField != null and sortField != '' and direction != null and direction !=''">
+            order by #{sortField} #{direction}
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,285 @@
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-form toolbar">
+            <label class="layui-form-label">交易时间</label>
+            <div class="layui-input-inline">
+                <input class="layui-input" id="transactionDate" name="transactionDate" placeholder=" - " type="text">
+            </div>
+            <button id="order-btn-search" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>查看</button>
+            <button id="order-btn-expExcel" class="layui-btn icon-btn"><i class="layui-icon">&#xe615;</i>导出excel</button>
+        </div>
+        <hr class="layui-bg-green">
+        <div class="layui-row">
+            <div class="layui-col-sm2">
+                <div class="layui-row">
+                    <div class="layui-col-sm2 "><i class="layui-icon" style="font-size: 30px; color: #1E9FFF;">&#xe65e;</i></div>
+                    <div class="layui-col-sm10 " style="height:100px">
+                        <div class="layui-col-sm12 ">交易总额：</div>
+                        <div class="layui-col-sm12" id="turnover"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-sm2">
+                <div class="layui-row">
+                    <div class="layui-col-sm2 "><i class="layui-icon" style="font-size: 30px; color: #1E9FFF;">&#xe65e;</i></div>
+                    <div class="layui-col-sm10 " style="height:100px">
+                        <div class="layui-col-sm12 ">应收款总额：</div>
+                        <div class="layui-col-sm12" id="realityTurnover" ></div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-sm2">
+                <div class="layui-row">
+                    <div class="layui-col-sm2 "><i class="layui-icon" style="font-size: 30px; color: #1E9FFF;">&#xe65e;</i></div>
+                    <div class="layui-col-sm10 " style="height:100px">
+                        <div class="layui-col-sm12 ">第三方手续费：</div>
+                        <div class="layui-col-sm12" id="poundage" ></div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-sm2">
+                <div class="layui-col-sm2 "><i class="layui-icon" style="font-size: 30px; color: #1E9FFF;">&#xe65e;</i></div>
+                <div class="layui-col-sm10 ">
+                    <div class="layui-col-sm12 ">对账差异笔数</div>
+                    <div class="layui-col-sm12 " id="difCount"></div>
+                </div>
+            </div>
+            <div class="layui-col-sm2">
+                <div class="layui-col-sm2 "><i class="layui-icon" style="font-size: 30px; color: #1E9FFF;">&#xe65e;</i></div>
+                <div class="layui-col-sm10 ">
+                    <div class="layui-col-sm12 ">对平笔数</div>
+                    <div class="layui-col-sm12 " id="sameCount"></div>
+                </div>
+            </div>
+            <div class="layui-col-sm2">
+                <div class="layui-col-sm2 "><i class="layui-icon" style="font-size: 30px; color: #1E9FFF;">&#xe65e;</i></div>
+                <div class="layui-col-sm10 ">
+                    <div class="layui-col-sm12 ">对平金额</div>
+                    <div class="layui-col-sm12 " id="sameTurnover"></div>
+                </div>
+            </div>
+        </div>
+        <div id="orderVerifyTable">
+            <div class="layui-row">
+                <div class="layui-col-sm12">
+                    <div class="layui-col-sm3">
+                        <fieldset class="layui-elem-field">
+                            <legend>对账异常统计</legend>
+                            <div class="layui-field-box">
+                                <table class="layui-table" id="order-table" lay-filter="order-table"></table>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="layui-col-sm9">
+                        <fieldset class="layui-elem-field">
+                            <legend>对账明细统计</legend>
+                            <div class="layui-field-box">
+                                <table class="layui-table" id="order-detail-table" lay-filter="order-detail-table"></table>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<style>
+    #orderVerifyTable tbody .layui-table-click{background-color: #ccffeb !important;}
+</style>
+<style>
+    .layui-tongji-head{background-color: #ccffeb !important;height:120px;align-content: center;}
+</style>
+<script>
+    layui.use(['form', 'table', 'util', '_config', 'admin','laydate','element'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var _config = layui._config;
+        var layer = layui.layer;
+        var util = layui.util;
+        var admin = layui.admin;
+        var laydate = layui.laydate;
+        var mchNo = $('#mchNo').val();
+        var childMchNo = $('#childMchNo').val();
+
+        var excel  = function (){
+            debugger;
+            $.ajax({
+                type:'get',
+                url: _config.base_server + '/verify/order/excel',
+                data:{
+                },
+                success:function(res){
+                    debugger;
+                    alert(res);
+                } })
+        }
+
+        // 初始化数据
+        $(function(){
+            select_total();
+        });
+        var select_total  = function (){
+            debugger;
+            var mchNo = $('#mchNo').val();
+            var childMchNo = $('#childMchNo').val();
+            var transactionDate = $('#transactionDate').val();
+            var startDate = transactionDate.substr(0,10);
+            var endDate = transactionDate.substr(13,10);
+            $.ajax({
+                type:'get',
+                url: _config.base_server + '/verify/order/queryStatisticsOrders',
+                data:{
+                    mchNo:mchNo,
+                    childMchNo:childMchNo,
+                    transactionDate:transactionDate,
+                    startDate:startDate,
+                    endDate:endDate
+                },
+                success:function(res){
+                    var data = res.data;
+                    if(data.data==null){
+                        $('#difCount').html(0);
+                        $('#sameCount').html(0);
+                        $('#sameTurnover').html(0);
+                        $('#turnover').html(0);
+                        $('#poundage').html(0);
+                        $('#realityTurnover').html(0);
+                    }else{
+                        $('#difCount').html(data.data.difCount);
+                        $('#sameCount').html(data.data.sameCount);
+                        $('#sameTurnover').html(change_money(data.data.sameTurnover));
+                        $('#turnover').html(change_money(data.data.turnover));
+                        $('#poundage').html(change_money(data.data.poundage));
+                        $('#realityTurnover').html(change_money(data.data.realityTurnover));
+                    }
+
+                } })
+        }
+
+        //交易金额的维度转换
+        var change_money  = function (data){
+            var changeTurnover = data / 100 +"";
+            var aNew;
+            var re = /([0-9]+\.[0-9]{2})[0-9]*/;
+            return aNew = changeTurnover.replace(re,"$1");
+        }
+        //日期范围
+        laydate.render({
+            elem: '#transactionDate',
+            range: true
+        });
+
+        // 渲染表格
+        table.render({
+            elem: '#order-table',
+            url: _config.base_server + '/verify/order/queryExceptionOrders',
+            method: 'GET',
+            where: {
+                access_token: _config.getToken().access_token,
+                mchNo: mchNo, childMchNo:childMchNo
+            },
+            page: true,
+            even: true, //开启隔行背景
+            cols: [[
+                {field: 'transactionDate', sort: true, title: '交易时间'
+                },
+                {field: 'count', sort: true, title: '异常数'}
+            ]],
+            done: function(res, curr, count){
+                var data = res.data;
+
+                $('.layui-table-body tr').each(function(i){
+                    var index = $(this).attr('data-index');
+                    $(this).click(function(){
+                        var fals = $(this).hasClass('layui-table-click');
+                        table.reload('order-detail-table', {where: {mchNo: mchNo,startDate:data[i].transactionDate,endDate:data[i].transactionDate}});
+                        if(!fals){
+                            $(this).addClass('layui-table-click');
+                        }else{
+                            $(this).removeClass('layui-table-click');
+                        }
+                    });
+
+                });
+            }
+        });
+
+        // 渲染表格开始：对账异常详细
+        table.render({
+            elem: '#order-detail-table',
+            url: _config.base_server + '/verify/order/queryExceptionOrdersDetail',
+            method: 'GET',
+            where: {
+                access_token: _config.getToken().access_token,
+                mchNo: mchNo, childMchNo:childMchNo,
+            },
+            page: true,
+            even: true, //开启隔行背景
+            cols: [[
+                {field: 'transactionDate', sort: true, title: '交易时间'
+                },
+                {field: 'childMchNo', sort: true, title: '商户号'},
+                {field: 'turnover', sort: true,templet: function(d){
+                    var changeTurnover = d.turnover / 100 +"";
+                    var aNew;
+                    var re = /([0-9]+\.[0-9]{2})[0-9]*/;
+                    return aNew = changeTurnover.replace(re,"$1");
+                }, title: '平台交易金额'},
+                {field: 'thirdTurnover', sort: true, templet: function(d){
+                        var changethirdTurnover = d.thirdTurnover / 100 +"";
+                        var aNew;
+                        var re = /([0-9]+\.[0-9]{2})[0-9]*/;
+                        return aNew = changethirdTurnover.replace(re,"$1");
+                    },title: '第三方交易金额'},
+                {field: 'verityMsg', sort: true, title: '对账说明'}
+            ]],
+            done: function(res, curr, count){
+                var data = res.data;
+                $('.layui-table-body tr').each(function(i){
+                    var index = $(this).attr('data-index');
+                    $(this).click(function(){
+                        var fals = $(this).hasClass('layui-table-click');
+                        if(!fals){
+                            $(this).addClass('layui-table-click');
+                        }else{
+                            $(this).removeClass('layui-table-click');
+                        }
+                    });
+
+                });
+            }
+        });
+
+        // 搜索按钮点击事件
+        $('#order-btn-search').click(function () {
+            var mchNo = $('#mchNo').val();
+            var childMchNo = $('#childMchNo').val();
+            var transactionDate = $('#transactionDate').val();
+            var startDate = transactionDate.substr(0,10);
+            var endDate = transactionDate.substr(13,10);
+            select_total();
+            table.reload('order-table', {where: {mchNo: mchNo,childMchNo: childMchNo,startDate:startDate,endDate:endDate}});
+            table.reload('order-detail-table', {where: {mchNo: mchNo,childMchNo: childMchNo,startDate:startDate,endDate:endDate}});
+        });
+
+        // 导出excel按钮点击事件
+        $('#order-btn-expExcel').click(function () {
+            window.location.href=_config.base_server + '/verify/order/excel';
+        });
+
+    });
+
+    var auth = JSON.parse(sessionStorage.getItem("auth"));
+    var page = location.hash.substring(2);
+    $(".user_auth").each(function(index, item) {
+        var buttonAuth = $(item).attr("data-auth");
+        if( !auth[page] || auth[page][buttonAuth] != 1 ){
+            $(item).remove();
+        }
+    });
+
+</script>

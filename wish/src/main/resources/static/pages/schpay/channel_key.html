@@ -1,0 +1,164 @@
+<!-- 渠道秘钥设置  刘露leo -->
+<div class="layui-manage">
+    <div class="layui-manage-body">
+        <div class="layui-form toolbar">	           
+            <button id="channelkey-btn-add" class="layui-btn icon-btn conf_auth" data-auth="schpay:channelkey:add"><i class="layui-icon">&#xe654;</i>密钥录入</button>       
+	    </div>
+    </div>
+</div>
+<style>
+</style>
+<script>
+    var pageIndex = 1;
+    layui.use(['form', 'table', 'util', '_config', 'admin','formSelects','laydate'], function () {
+    	var laydate = layui.laydate;
+    	var form = layui.form;
+        var table = layui.table;
+        var _config = layui._config;
+        var layer = layui.layer;
+        var util = layui.util;
+        var admin = layui.admin;
+        var formSelects = layui.formSelects;                     
+        // 渲染表格
+        table.render({
+            
+        });
+
+     	// 添加按钮点击事件
+        $('#channelkey-btn-add').click(function () {
+           showEditModel(null,null,'录入秘钥');
+       	}); 
+     	
+        //修改或添加
+        var showEditModel = function (data,obj,title) {
+       	 console.info("showEditModel:"+JSON.stringify(data));
+           if(title=='录入秘钥'){
+        	   admin.putTempData('t_mch_conf', {});
+               admin.popupCenter({
+                   title: title,
+                   path: 'pages/schpay/channel_key_from.html',
+                   finish: function () {
+                       table.reload('pay_conf-table', {});
+                   }
+               });
+           	
+           }
+       };
+     	                                            
+          //获取前一天
+          $('#before-date').click(function () {
+        	  var stDates = $("#startDate").val();
+              var edDate = $("#endDate").val();
+              
+              $("#startDate").val(nextDate(1,"reduce",stDates));
+        	  $("#endDate").val(nextDate(1,"reduce",edDate));
+          });
+        
+          
+          //获取后一天
+          $('#after-date').click(function () {
+        	  var stDates = $("#startDate").val();
+              var edDate = $("#endDate").val();
+
+        	  $("#startDate").val(nextDate(1,"add",stDates));
+        	  $("#endDate").val(nextDate(1,"add",edDate));
+          });
+          
+        // 搜索按钮点击事件
+         $('#channel_list-btn-search').click(function () {
+        	var stDates = $("#startDate").val();
+            var edDate = $("#endDate").val();
+            var channelName = $('#channelName').val();//渠道名称
+            var channelNo = $('#channelNo').val();//渠道id  
+     		if(compareDate(stDates,edDate)){
+     			layer.msg('请选择正确的时间段!!!', {icon: 2});
+     			return false;
+     		}
+             
+            table.reload('channel_manage-table',
+            {
+            	where: {
+            	  channelName:channelName,
+                  channelNo:channelNo,
+            	  sdstrdate:stDates,
+            	  edstrdate:edDate
+            },page: {
+        	  curr: 1 //重新从第 1 页开始
+      	    }
+            });
+        });         
+       //日期时间选择器
+         startDate(nextDate(2,"reduce",""),laydate);
+       //日期时间选择器
+         endDate(new Date(),laydate);         
+    });
+
+	var auth = JSON.parse(sessionStorage.getItem("auth"));
+	var page = location.hash.substring(2);
+	$(".channel_list_auth").each(function(index, item) {
+	    var buttonAuth = $(item).attr("data-auth");
+	    if( !auth[page] || auth[page][buttonAuth] != 1 ){
+	    	console.info(auth[page]+"=="+auth[page][buttonAuth]);
+	        $(item).remove();
+	    }
+	});
+		
+	function endDate(date,laydate){
+		 laydate.render({
+	           elem: '#endDate'
+	           ,type: 'datetime'
+	           ,value: date
+	           ,btns: ['now', 'confirm']
+	         });  
+	}
+	
+	function startDate(date,laydate){
+		laydate.render({
+	           elem: '#startDate'
+	           ,type: 'datetime'
+	           ,value: date
+	           ,btns: ['now', 'confirm']
+	         });
+	}
+	
+	//日期比较
+	function compareDate(s1,s2){
+		  return ((new Date(s1.replace(/-/g,"\/")))>(new Date(s2.replace(/-/g,"\/"))));
+	}
+	
+	//获取指定天数时间
+	function nextDate(day,types,times){
+		var curDate;
+	  if(times==''){
+		  curDate = new Date();
+	  }else{
+		  curDate = new Date(times);
+	  }	
+  	   
+  	  var nextDate = "";
+  	  if(types=='add'){
+  		nextDate = new Date(curDate.getTime() + day*24*60*60*1000); //后多少天
+  	  }else{
+  		nextDate = new Date(curDate.getTime() - day*24*60*60*1000); //前多少天
+  	  }
+  	  return dateFtt('yyyy-MM-dd hh:mm:ss',nextDate)  ;
+    }	
+	function dateFtt(fmt,date)   
+	{ //author: meizz   
+	  var o = {   
+	    "M+" : date.getMonth()+1,                 //月份   
+	    "d+" : date.getDate(),                    //日   
+	    "h+" : date.getHours(),                   //小时   
+	    "m+" : date.getMinutes(),                 //分   
+	    "s+" : date.getSeconds(),                 //秒   
+	    "q+" : Math.floor((date.getMonth()+3)/3), //季度   
+	    "S"  : date.getMilliseconds()             //毫秒   
+	  };   
+	  if(/(y+)/.test(fmt))   
+	    fmt=fmt.replace(RegExp.$1, (date.getFullYear()+"").substr(4 - RegExp.$1.length));   
+	  for(var k in o)   
+	    if(new RegExp("("+ k +")").test(fmt))   
+	  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));   
+	  return fmt;   
+	}
+</script>

@@ -1,0 +1,128 @@
+<!-- 渠道秘钥设置  刘露leo -->
+<form id="channel-key-form" lay-filter="channel-key-form" class="layui-form model-form">    
+	    <!-- <div class="layui-form-item">
+	        <label class="layui-form-label">渠道号</label>
+	        <div class="layui-input-block">
+	            <input id="signAgentno" name="signAgentno" placeholder="请输入渠道号" type="text" class="layui-input" maxlength="200"/>
+	        </div>
+	    </div> -->
+   
+	    <div class="layui-form-item">
+	        <label class="layui-form-label">加密类型</label>
+	        <div class="layui-input-block">
+	            <select id="channelKey" name="channelKey" lay-filter="channelKey" lay-verify="required">
+	            	<option value="MD5">MD5</option>
+	            	<option value="RSA_1_256">RSA_1_256</option>
+	            	<option value="RSA_1_1">RSA_1_1</option>
+	            </select>
+	        </div>
+	   </div>
+
+	    <div class="layui-form-item md5key">
+	        <label class="layui-form-label">MD5密钥</label>
+	        <div class="layui-input-block">
+	            <input id="channelMd5key" name="channelMd5key" placeholder="请输入密钥" type="text" class="layui-input"/>
+	        </div>
+	    </div>
+	    
+	     <!-- <div class="layui-form-item rsakey">
+            <label class="layui-form-label">RSA公钥</label>
+            <div class="layui-input-block">
+                <textarea id="mchPubKey" name="mchPubKey" placeholder="请输入内容" class="layui-textarea" maxlength="2000"></textarea>
+            </div>
+        </div> -->
+        
+         <div class="layui-form-item rsakey">
+            <label class="layui-form-label">RSA私钥</label>
+            <div class="layui-input-block">
+                <textarea id="channelRsakey" name="channelRsakey" placeholder="请输入内容" class="layui-textarea" maxlength="2000"></textarea>
+            </div>
+        </div>
+        
+         <!-- <div class="layui-form-item rsakey">
+            <label class="layui-form-label">威富通公钥</label>
+            <div class="layui-input-block">
+                <textarea id="wftPubKey" name="wftPubKey" placeholder="请输入内容" class="layui-textarea" maxlength="2000"></textarea>
+            </div>
+        </div> -->
+	    
+	    
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="channel-key-form-submit" data-auth="schpay:channelkey:save" lay-submit>保存</button>
+    </div>
+</form>
+
+<script>
+    layui.use(['layer', 'admin', 'form', 'formSelects'], function () {
+        var layer = layui.layer;
+        var admin = layui.admin;
+        var form = layui.form;
+        var formSelects = layui.formSelects;
+        
+        //获取select checked 值
+        form.on('select(channelKey)', function(data){
+        	  var channelKey = data.value; //得到被选中的值
+        	  changeType(channelKey);
+        }); 
+        
+        var mchconf = admin.getTempData('t_mch_conf');
+        $('#channel-key-form').attr('method', 'POST');
+        if (JSON.stringify(mchconf)!='{}') {
+        	changeType(mchconf.channelKey);
+            form.val('channel-key-form', mchconf);
+        }else{
+        	changeType("MD5");
+        }
+        form.render();//表单重新渲染
+        
+        // 表单提交事件
+         form.on('submit(channel-key-form-submit)', function (data) {
+            var channelKey = $("#channelKey").val();
+            if(channelKey=='MD5'){
+            	var channelMd5key = $("#channelMd5key").val();
+            	if(channelMd5key==''){
+            		layer.msg("MD5密钥不能为空", {icon: 5,time: 1500});
+            		return false;
+            	}
+            }else{
+            	/* var mchPubKey = $("#mchPubKey").val();
+            	if(mchPubKey==''){
+            		layer.msg("RSA公钥", {icon: 1,time: 1500});
+            		return false;
+            	} */
+            	var channelRsakey = $("#channelRsakey").val();
+            	if(channelRsakey==''){
+            		layer.msg("RSA私钥不能为空", {icon: 5,time: 1500});
+            		return false;
+            	}
+            	/* var wftPubKey = $("#wftPubKey").val();
+            	if(wftPubKey==''){
+            		layer.msg("威富通公钥", {icon: 1, time: 1500});
+            		return false;
+            	} */           	           	           	
+            }
+            
+            admin.req('/admin/channel/addchannelkey', data.field, function (data) {
+                layer.closeAll('loading');
+                if (data.status == 0) {
+                	layer.msg(data.msg, {icon: 1, time: 1500});
+                    admin.finishPopupCenter();
+                } else {
+                    layer.msg(data.msg, {icon: 5,time: 1500});
+                }
+            }, $('#channel-key-form').attr('method'));
+            return false;
+        });
+    });
+    
+    function changeType(types){
+    	if(types=='MD5'){
+        	$(".md5key").show();
+        	$(".rsakey").hide();
+        }else{
+        	$(".md5key").hide();
+        	$(".rsakey").show();
+        }
+    }  
+</script>

@@ -1,0 +1,440 @@
+<!-- 订单列表 @author 刘露leo -->
+<div class="layui-orderlist">
+	<div class="layui-orderlist-body">
+		<div class="layui-orderlist-form toolbar">
+			&emsp;创建时间：
+			<input type="text" id="orderlistStartDate" name="orderlistStartDate" class="layui-input search-input"
+				   placeholder="开始时间">&emsp; 至 &emsp;
+			<input type="text" id="orderlistEndDate" name="orderlistEndDate" class="layui-input search-input"
+				   placeholder="结束时间">
+			<button id="before-date" class="layui-btn layui-btn-radius layui-btn-normal">前一天</button>
+			<button id="after-date" class="layui-btn layui-btn-radius layui-btn-normal">后一天</button>&emsp;
+			联系人：<input id="contacts" name="contacts" placeholder="请输入负责人名称" type="text"
+					   class="layui-input search-input"/>&emsp;
+			联系人手机号：<input id="contactsPhone" name="contactsPhone" placeholder="请输入负责人手机号" type="text"
+						  class="layui-input search-input"/>&emsp;
+			<br/><br/>
+			&emsp;支付状态：
+			<select id="payStatus" name="payStatus" class="layui-input search-input">
+				<option value="">请选择</option>
+				<option value="success">已支付</option>
+				<option value="downpayment">已付定金</option>
+				<option value="nonpayment">未支付</option>
+				<option value="refunded">已退款</option>
+			</select>
+			&emsp;审核状态：
+			<select id="orderStatus" name="orderStatus" class="layui-input search-input">
+				<option value="">请选择</option>
+				<option value="success">已完成</option>
+				<option value="developing">开发中</option>
+				<option value="check">已审核</option>
+				<option value="nocheck">未审核</option>
+			</select>
+			&emsp;创建人：<input id="createBy" name="createBy" placeholder="请输入创建人" type="text"
+							 class="layui-input search-input"/>&emsp;
+			&emsp;
+			<button id="orderlist-list-btn-search" class="layui-btn icon-btn orderlist_list_auth"
+					data-auth="sys:orderlist:qry"><i class="layui-icon">&#xe615;</i>搜索
+			</button>
+			<br/><br/>&emsp;
+			<button id="orderlist-btn-add" class="layui-btn icon-btn" data-auth="sys:orderlist:add">
+				<i class="layui-icon">&#xe654;</i>新增
+			</button>&emsp;
+			<button id="orderlist-btn-export" class="layui-btn icon-btn"
+					data-auth="sys:orderlist:export"><i class="layui-icon">&#xe67d;</i>导出
+			</button>
+
+		</div>
+
+	</div>
+	<div id="userLayTable">
+		<table class="layui-table" id="orderlist-manage-table" lay-filter="orderlist-manage-table"></table>
+	</div>
+</div>
+</div>
+<style>
+	#userLayTable tbody .layui-table-click {
+		background-color: #ccffeb !important;
+	}
+</style>
+<script>
+	var pageIndex = 2;
+	layui.use(['form', 'table', 'util', '_config', 'admin', 'formSelects', 'laydate'], function () {
+		var laydate = layui.laydate;
+		var form = layui.form;
+		var table = layui.table;
+		var _config = layui._config;
+		var layer = layui.layer;
+		var util = layui.util;
+		var admin = layui.admin;
+		var formSelects = layui.formSelects;
+		var stDates = $("#orderlistStartDate").val();
+		var edDate = $("#orderlistEndDate").val();
+		var contacts = $('#contacts').val();
+		var contactsPhone = $('#contactsPhone').val();
+		var payStatus = $('#payStatus').val();
+		var createBy = $('#createBy').val();
+		var orderStatus = $('#orderStatus').val();
+
+		if (stDates == '') {
+			stDates = nextDate(30, "reduce", "");
+		}
+		if (edDate == '') {
+			edDate = dateFtt('yyyy-MM-dd hh:mm:ss', new Date());
+		}
+
+		// 渲染表格
+		table.render({
+			elem: '#orderlist-manage-table',
+			url: _config.base_server + '/admin/orderlist/list',
+			method: 'GET',
+			//contentType: "application/json;charset=UTF-8",
+			where: {
+				contacts: contacts,
+				contactsPhone: contactsPhone,
+				sdstrdate: stDates,
+				edstrdate: edDate,
+				payStatus: payStatus,
+				orderStatus: orderStatus,
+				createBy: createBy
+			},
+			page: true,
+			even: true, //开启隔行背景
+			limit: 10,
+			cols: [[
+				{type: 'numbers'},
+				{field: 'contacts', width: 100, sort: true, title: '联系人'},
+				{field: 'contactsPhone', width: 120, sort: false, title: '联系人手机号'},
+				{field: 'salesman', width: 100, sort: true, title: '开单员'},
+				{field: 'business', width: 100, sort: true, title: '业务员'},
+				{field: 'developer', width: 100, sort: true, title: '设计师'},
+				{
+					field: 'orderStatus', width: 100, sort: false, templet: function (d) {
+						var orderStatus = d.orderStatus;
+						if (orderStatus == 'success') {
+							return "已完成";
+						} else if (orderStatus == 'developing') {
+							return "开发中";
+						} else if (orderStatus == 'check') {
+							return "已审核";
+						} else if (orderStatus == 'nocheck') {
+							return "未审核";
+						} else {
+							return "";
+						}
+					}, title: '订单状态'
+				},
+				{
+					field: 'payStatus', width: 100, sort: false, templet: function (d) {
+						var payStatus = d.payStatus;
+						if (payStatus == 'success') {
+							return "已支付";
+						} else if (payStatus == 'downpayment') {
+							return "已付定金";
+						} else if (payStatus == 'nonpayment') {
+							return "未支付";
+						}else if (payStatus == 'refunded') {
+							return "已退款";
+						}else {
+							return "";
+						}
+					}, title: '支付状态'
+				},
+				{field: 'cost', sort: true, width: 100, title: '成本(元)'},
+				{field: 'downPayment', sort: true, width: 100, title: '定金(元)'},
+				{field: 'finalPayment', sort: true, width: 100, title: '尾款(元)'},
+				{field: 'money', sort: true, width: 100, title: '实收额(元)'},
+				{field: 'discountAmount', sort: true, width: 100, title: '优惠额(元)'},
+				{field: 'allMoney', sort: true, width: 100, title: '总金额(元)'},
+				{
+					field: 'print', width: 100, sort: false, templet: function (d) {
+						var print = d.print;
+						if (print == 'Y') {
+							return "是";
+						} else if (print == 'N') {
+							return "否";
+						} else {
+							return "";
+						}
+					}, title: '是否打印'
+				},
+				{field: 'texture', sort: false, width: 100, title: '材质'},
+				{field: 'remarks', sort: false, width: 100, title: '备注'},
+				{
+					width: 160, sort: false, templet: function (d) {
+						return util.toDateString(d.createDate);
+					}, title: '创建时间'
+				},
+				{
+					align: 'center', width: 200, templet: function (d) {
+						var auth = JSON.parse(sessionStorage.getItem("auth"));
+						var page = location.hash.substring(2);
+						var btn = '';
+						if (auth[page] && auth[page]['sys:orderlist:update']) {
+							btn += '<a class="layui-btn layui-btn-xs" lay-event="edit" >修改</a>';
+						}
+						if (auth[page] && auth[page]['sys:orderlist:update']) {
+							btn += '<a class="layui-btn layui-btn-xs" lay-event="editStatus" >修改状态</a>';
+						}
+						if (auth[page] && auth[page]['sys:orderlist:qryhis']) {
+							btn += '<a class="layui-btn layui-btn-xs" lay-event="qryhis" >历史</a>';
+						}
+						if (btn == '') {
+							return '无权限';
+						} else {
+							return btn;
+						}
+					}, title: '操作'
+				}
+			]],
+			done: function (res, curr, count) {
+				var data = res.data;
+				pageIndex = curr;
+				//console.info("page:" + pageIndex);
+				$('.layui-table-body tr').each(function (i) {
+					var index = $(this).attr('data-index');
+					$(this).click(function () {
+						var fals = $(this).hasClass('layui-table-click');
+						if (!fals) {
+							$(this).addClass('layui-table-click');
+						} else {
+							$(this).removeClass('layui-table-click');
+						}
+					});
+
+				});
+			}
+		});
+
+		// 搜索按钮点击事件
+		$('#orderlist-list-btn-search').click(function () {
+			var stDates = $("#orderlistStartDate").val();
+			var edDate = $("#orderlistEndDate").val();
+			var contacts = $('#contacts').val();
+			var contactsPhone = $('#contactsPhone').val();
+			var payStatus = $('#payStatus').val();
+			var createBy = $('#createBy').val();
+			var orderStatus = $('#orderStatus').val();
+
+			if (compareDate(stDates, edDate)) {
+				layer.msg('请选择正确的时间段!', {icon: 2});
+				return false;
+			}
+
+			table.reload('orderlist-manage-table', {
+				where: {
+					contacts: contacts,
+					contactsPhone: contactsPhone,
+					sdstrdate: stDates,
+					edstrdate: edDate,
+					payStatus: payStatus,
+					orderStatus: orderStatus,
+					createBy: createBy
+				}, page: {
+					curr: 1 //重新从第 1 页开始
+				}
+			});
+		});
+
+		// 添加按钮点击事件
+		$('#orderlist-btn-add').click(function () {
+			showEditModel(null, null, '新增订单记录');
+		});
+
+		// 工具条点击事件
+		table.on('tool(orderlist-manage-table)', function (obj) {
+			var data = obj.data;
+			var layEvent = obj.event;
+
+			if (layEvent === 'edit') { // 修改
+				showEditModel(data, obj, '修改订单记录');
+			}
+			if (layEvent === 'editStatus') { // 修改
+				showEditModel(data, obj, '修改状态');
+			}
+		});
+
+		//修改或添加
+		var showEditModel = function (data, obj, title) {
+			admin.putTempData('orderlist_detail_form', data);
+			admin.putTempData("editStatus", "false")
+			if (data) {
+				//console.info("修改财务记录:" + JSON.stringify(data));
+				if(title === '修改状态'){
+					admin.putTempData("editStatus", "true")
+				}
+				admin.popupCenter({
+					title: title,
+					path: 'pages/wish/orderlist_form.html',
+					finish: function () {
+						table.reload('orderlist-manage-table', {});
+					}
+				});
+			} else {
+				admin.popupCenter({
+					title: title,
+					path: 'pages/wish/orderlist_form.html',
+					finish: function () {
+						table.reload('orderlist-manage-table', {});
+					}
+				});
+			}
+		};
+
+		// 导出
+		$('#orderlist-btn-export').click(function () {
+
+			var contacts = $("#contacts").val();
+			var contactsPhone = $("#contactsPhone").val();
+			var createBy = $("#createBy").val();
+			var sdstrdate = $("#orderlistStartDate").val();
+			var edstrdate = $("#orderlistEndDate").val();
+			var payStatus = $('select[name="payStatus"]').val();
+			var orderStatus = $('select[name="orderStatus"]').val();
+			if(sdstrdate !=null && sdstrdate !="" && (edstrdate ==null || edstrdate =="")){
+				layer.msg('请选择结束时间!', {icon: 2});
+				return false;
+			}
+			if(edstrdate !=null && edstrdate !="" && (sdstrdate ==null ||  sdstrdate =="")){
+				layer.msg('请选择开始时间!', {icon: 2});
+				return false;
+			}
+			if(compareDate(sdstrdate,edstrdate)){
+				layer.msg('结束时间需要大于开始时间!', {icon: 2});
+				return false;
+			}
+			if(sdstrdate !=null && sdstrdate !="" && edstrdate !=null && edstrdate !=""){
+				if(getDateSix(sdstrdate,edstrdate)){
+					layer.msg('开始时间和结束时间跨度不能超过6个月!', {icon: 2});
+					return false;
+				}
+			}
+			window.location.href=_config.base_server
+					+ "/admin/orderlist/export?contacts="+contacts+"&contactsPhone="+contactsPhone+"&createBy="+createBy+"&sdstrdate="+sdstrdate+"&edstrdate="+edstrdate+"&payStatus="+payStatus+"&orderStatus="+orderStatus;
+
+		});
+
+		//日期时间选择器
+		orderlistStartDate(nextDate(30, "reduce", ""), laydate);
+		//日期时间选择器 获取当前时间增加一小时
+		var d = new Date();
+		var year = d.getFullYear();
+		var month = d.getMonth();
+		var day = d.getDate();
+		var hour = d.getHours();
+		var min = d.getMinutes();
+		var s = d.getSeconds();
+		d = new Date(year, month, day, hour + 1, min, s);
+		orderlistEndDate(d, laydate);
+	});
+	//layui.use结束
+
+
+	var auth = JSON.parse(sessionStorage.getItem("auth"));
+	var page = location.hash.substring(2);
+	$(".orderlist_list_auth").each(function (index, item) {
+		var buttonAuth = $(item).attr("data-auth");
+		if (!auth[page] || auth[page][buttonAuth] != 1) {
+			console.info(auth[page] + "==" + auth[page][buttonAuth]);
+			$(item).remove();
+		}
+	});
+	//获取前一天
+	$('#before-date').click(function () {
+		var stDates = $("#orderlistStartDate").val();
+		var edDate = $("#orderlistEndDate").val();
+
+		$("#orderlistStartDate").val(nextDate(1, "reduce", stDates));
+		$("#orderlistEndDate").val(nextDate(1, "reduce", edDate));
+	});
+
+	//获取后一天
+	$('#after-date').click(function () {
+		var stDates = $("#orderlistStartDate").val();
+		var edDate = $("#orderlistEndDate").val();
+
+		$("#orderlistStartDate").val(nextDate(1, "add", stDates));
+		$("#orderlistEndDate").val(nextDate(1, "add", edDate));
+	});
+
+	function orderlistEndDate(date, laydate) {
+		laydate.render({
+			elem: '#orderlistEndDate'
+			, type: 'datetime'
+			, value: date
+			, btns: ['now', 'confirm']
+		});
+	}
+
+	function orderlistStartDate(date, laydate) {
+		laydate.render({
+			elem: '#orderlistStartDate'
+			, type: 'datetime'
+			, value: date
+			, btns: ['now', 'confirm']
+		});
+	}
+
+	//日期比较
+	function compareDate(s1, s2) {
+		return ((new Date(s1.replace(/-/g, "\/"))) > (new Date(s2.replace(/-/g, "\/"))));
+	}
+
+	//日期比较 是否相差六个月
+	function getDateSix(sDate, eDate) {
+		var sDate = new Date(sDate);
+		var eDate = new Date(eDate);
+		if (eDate.getFullYear() - sDate.getFullYear() >= 1) {//先比较年
+			if(eDate.getMonth()+12 - sDate.getMonth() > 6) {
+				return true;
+			}else if (eDate.getDate() - sDate.getDate() >= 1) {
+				return true;
+			}
+		}else{
+			if(eDate.getMonth() - sDate.getMonth() > 6) {//再比较月
+				return true;
+			}else if(eDate.getMonth() - sDate.getMonth() == 6){
+				if (eDate.getDate() - sDate.getDate() >= 1) {//再比较天
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	//获取指定天数时间
+	function nextDate(day, types, times) {
+		var curDate;
+		if (times == '') {
+			curDate = new Date();
+		} else {
+			curDate = new Date(times);
+		}
+
+		var nextDate = "";
+		if (types == 'add') {
+			nextDate = new Date(curDate.getTime() + day * 24 * 60 * 60 * 1000); //后多少天
+		} else {
+			nextDate = new Date(curDate.getTime() - day * 24 * 60 * 60 * 1000); //前多少天
+		}
+		return dateFtt('yyyy-MM-dd hh:mm:ss', nextDate);
+	}
+
+	function dateFtt(fmt, date) { //author: meizz
+		var o = {
+			"M+": date.getMonth() + 1,                 //月份
+			"d+": date.getDate(),                    //日
+			"h+": date.getHours(),                   //小时
+			"m+": date.getMinutes(),                 //分
+			"s+": date.getSeconds(),                 //秒
+			"q+": Math.floor((date.getMonth() + 3) / 3), //季度
+			"S": date.getMilliseconds()             //毫秒
+		};
+		if (/(y+)/.test(fmt))
+			fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+		for (var k in o)
+			if (new RegExp("(" + k + ")").test(fmt))
+				fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+		return fmt;
+	}
+</script>

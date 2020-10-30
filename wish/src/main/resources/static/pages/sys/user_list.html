@@ -1,0 +1,205 @@
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-form toolbar">
+            登录名：<input id="loginName" name="loginName" class="layui-input search-input" type="text" placeholder="输入登录名"/>&emsp;
+            姓名：<input id="name" name="name" class="layui-input search-input" type="text" placeholder="输入姓名"/>&emsp;
+            手机号：<input id="mobile" name="mobile" class="layui-input search-input" type="text" placeholder="输入手机号"/>&emsp;
+            <button id="user-btn-search" class="layui-btn icon-btn user_auth" data-auth="sys:user:qry"><i class="layui-icon">&#xe615;</i>搜索</button><br><br>
+            
+            <button id="user-btn-add" class="layui-btn icon-btn user_auth" data-auth="sys:user:save"><i class="layui-icon">&#xe654;</i>添加</button>
+        </div>
+        
+		<div id="userLayTable">
+        	<table class="layui-table" id="user-table" lay-filter="user-table"></table>
+        </div>
+    </div>
+</div>
+<style>
+	#userLayTable tbody .layui-table-click{background-color: #ccffeb !important;}
+</style>
+<script>
+    layui.use(['form', 'table', 'util', '_config', 'admin'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var _config = layui._config;
+        var layer = layui.layer;
+        var util = layui.util;
+        var admin = layui.admin;
+        var loginName = $('#loginName').val();
+        var realName = $('#name').val();
+        var mobile = $('#mobile').val();
+
+        // 渲染表格
+        table.render({
+            elem: '#user-table',
+            url: _config.base_server + '/sys/user/qryPage',
+            method: 'GET',
+            where: {
+                access_token: _config.getToken().access_token,
+                loginName: loginName, name: realName,mobile:mobile
+            },
+            page: true,
+            even: true, //开启隔行背景
+            cols: [[
+                {type: 'numbers'},
+                {field: 'loginName', sort: true, title: '登录账号'},
+                {field: 'name', sort: true, title: '真实姓名'},
+                {field: 'mobile', sort: true, title: '手机号'},
+                {field: 'fldS1', sort: true, title: '渠道号'},
+                {
+                    sort: true, templet: function (d) {
+                        return util.toDateString(d.createDate);
+                    }, title: '注册时间'
+                },
+                {align: 'center', field: 'status', sort: false, templet: function(d){
+                	var auth = JSON.parse(sessionStorage.getItem("auth"));
+                	var page = location.hash.substring(2);
+                	if(auth[page] && auth[page]['sys:user:update']){
+                		var swiftBtn = '<input type="checkbox" lay-filter="user-tpl-state" value="'+d.id+'" lay-skin="switch" lay-text="锁定|正常"';
+                		if(d.status == 0){
+                			swiftBtn+=' checked="checked" />';
+                		}else{
+                			swiftBtn+='/>';
+                		}
+            	        return swiftBtn;
+            	    }else{
+            	    	var status = "正常";
+            	    	if(d.status == 0){
+            	    		status = "锁定";
+                		}
+            	    	return status;
+            	    }
+                }, title: '用户状态'},
+                {align: 'center', templet: function(d){
+                	var auth = JSON.parse(sessionStorage.getItem("auth"));
+                	var page = location.hash.substring(2);
+                	var btn = '';
+                	if(auth[page] && auth[page]['sys:user:update']){
+                		btn = '<a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>'
+                			+ '<a class="layui-btn layui-btn-xs" lay-event="reset">重置密码</a>';
+            	    }
+                	if(btn == ''){
+                		return '无权限';
+                	}else{
+                		return btn;
+                	}
+                }, title: '操作'}
+            ]],
+            done: function(res, curr, count){
+            	var data = res.data;
+            	$('.layui-table-body tr').each(function(i){
+	            	var index = $(this).attr('data-index');
+	            	$(this).click(function(){
+	            		var fals = $(this).hasClass('layui-table-click');
+	                	if(!fals){
+	                		$(this).addClass('layui-table-click');
+	                	}else{
+	                		$(this).removeClass('layui-table-click');
+	                	}
+	            	});
+
+            	});
+            }
+        });
+
+        // 添加按钮点击事件
+        $('#user-btn-add').click(function () {
+            showEditModel();
+        });
+
+        // 工具条点击事件
+        table.on('tool(user-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') { // 修改
+                showEditModel(data);
+            } else if (layEvent === 'reset') { // 重置密码
+                layer.confirm('确定重置此用户的密码吗？', function (i) {
+                    layer.close(i);
+                    layer.load(2);
+                    admin.req('/sys/user/initPwd?id=' + obj.data.id, {}, function (data) {
+                        layer.closeAll('loading');
+                        if (data.code == 0) {
+                            layer.msg(data.msg, {icon: 1, time: 5000});
+                        } else {
+                            layer.msg(data.msg, {icon: 2});
+                        }
+                    }, 'post');
+                });
+            }
+        });
+
+        //显示表单弹窗
+        var showEditModel = function (data) {
+            var title = data ? '修改用户' : '添加用户';
+            
+            if(data){
+            	admin.req('/sys/user/get', {
+                    id: data.id
+                }, function (data) {
+                    layer.closeAll('loading');
+                    if (data.code == 0) {
+                        admin.putTempData('t_user', data.data);
+                        admin.popupCenter({
+                            title: title,
+                            path: 'pages/sys/user_add.html',
+                            finish: function () {
+                                table.reload('user-table', {});
+                            }
+                        });
+                    } else {
+                        layer.msg(data.msg, {icon: 2});
+                    }
+                }, 'post');
+            }else{
+                admin.putTempData('t_user', {});
+                admin.popupCenter({
+                    title: title,
+                    path: 'pages/sys/user_add.html',
+                    finish: function () {
+                        table.reload('user-table', {});
+                    }
+                });
+            }
+            
+        };
+
+        // 搜索按钮点击事件
+        $('#user-btn-search').click(function () {
+            var loginName = $('#loginName').val();
+            var realName = $('#name').val();
+            var mobile = $('#mobile').val();
+            table.reload('user-table', {where: {loginName: loginName, name: realName,mobile:mobile}});
+        });
+
+        // 修改user状态
+        form.on('switch(user-tpl-state)', function (obj) {
+            layer.load(2);
+            admin.req('/sys/user/setStatus', {
+                id: obj.elem.value,
+                status: obj.elem.checked ? 0 : 1
+            }, function (data) {
+                layer.closeAll('loading');
+                if (data.code == 0) {
+                    layer.msg(data.msg, {icon: 1});
+                } else {
+                    layer.msg(data.msg, {icon: 2});
+                    $(obj.elem).prop('checked', !obj.elem.checked);
+                    form.render('checkbox');
+                }
+            }, 'post');
+        });
+        
+    });
+
+	var auth = JSON.parse(sessionStorage.getItem("auth"));
+	var page = location.hash.substring(2);
+	$(".user_auth").each(function(index, item) {
+	    var buttonAuth = $(item).attr("data-auth");
+	    if( !auth[page] || auth[page][buttonAuth] != 1 ){
+	        $(item).remove();
+	    }
+	});
+
+</script>

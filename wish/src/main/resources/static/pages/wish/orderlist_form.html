@@ -1,0 +1,255 @@
+<!-- 订单列表弹窗 @author leo -->
+<form id="orderlist_detail_form" lay-filter="orderlist_detail_form" class="layui-form model-form">
+    <input id="id" name="id" type="hidden"/>
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">联系人</label>
+        <div class="layui-input-block">
+            <input id="contacts" name="contacts" placeholder="请输入联系人" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">联系人手机</label>
+        <div class="layui-input-block">
+            <input id="contactsPhone" name="contactsPhone" placeholder="请输入联系人手机号" type="text" class="layui-input"
+                   maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">开单员</label>
+        <div class="layui-input-block">
+            <input id="salesman" name="salesman" placeholder="请输入开单员" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">业务员</label>
+        <div class="layui-input-block">
+            <input id="business" name="business" placeholder="请输入业务员" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required"/>
+        </div>
+    </div>
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">设计师</label>
+        <div class="layui-input-block">
+            <input id="developer" name="developer" placeholder="请输入设计师" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required"/>
+        </div>
+    </div>
+    <div class="layui-form-item ">
+        <label class="layui-form-label">订单状态</label>
+        <div class="layui-input-block">
+            <select id="orderStatus" name="orderStatus" lay-filter="orderStatus" lay-verify="required">
+                <option value="">请选择订单状态</option>
+                <option value="nocheck">未审核</option>
+                <option value="check">已审核</option>
+                <option value="developing">开发中</option>
+                <option value="success">已完成</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">支付状态</label>
+        <div class="layui-input-block">
+            <select id="payStatus" name="payStatus" lay-filter="payStatus" lay-verify="required">
+                <option value="">请选择支付状态</option>
+                <option value="nonpayment">未支付</option>
+                <option value="downpayment">已付定金</option>
+                <option value="success">已支付</option>
+                <option value="refunded">已退款</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">成本(元)</label>
+        <div class="layui-input-block">
+            <input id="cost" name="cost"  placeholder="请输入成本" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" />
+        </div>
+    </div>
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">定金(元)</label>
+        <div class="layui-input-block">
+            <input id="downPayment" name="downPayment"  value = 0 placeholder="请输入定金" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" />
+        </div>
+    </div>
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">尾款(元)</label>
+        <div class="layui-input-block">
+            <input id="finalPayment" name="finalPayment"  placeholder="请输入尾款" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" />
+        </div>
+    </div>
+    <!--<div class="layui-form-item">
+        <label class="layui-form-label">实收金额(元)</label>
+        <div class="layui-input-block">
+            <input id="money" name="money"  placeholder="请输入实收金额" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" />
+        </div>
+    </div>-->
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">优惠额(元)</label>
+        <div class="layui-input-block">
+            <input id="discountAmount" name="discountAmount" value = 0 placeholder="请输入优惠金额" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" />
+        </div>
+    </div>
+    <!--<div class="layui-form-item">
+        <label class="layui-form-label">总金额(元)</label>
+        <div class="layui-input-block">
+            <input id="allMoney" name="allMoney" placeholder="请输入总金额" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" />
+        </div>
+    </div>-->
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">材质</label>
+        <div class="layui-input-block">
+            <input id="texture" name="texture" value="A4" placeholder="请输入材质" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" />
+        </div>
+    </div>
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <input id="remarks" name="remarks" placeholder="请输入备注：如交货日期" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" />
+        </div>
+    </div>
+    <div class="layui-form-item hiddenDiv">
+        <label class="layui-form-label">打印</label>
+        <div class="layui-input-block">
+            <select id="print" name="print" lay-filter="print" lay-verify="required">
+                <option value="">请选择是否打印</option>
+                <option value="Y">是</option>
+                <option value="N">否</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="orderlist_detail_form_submit" data-auth="sys:orderlist:add" lay-submit>
+            保存
+        </button>
+    </div>
+</form>
+
+<script>
+    layui.use(['layer', 'admin', 'form', 'formSelects'], function () {
+        var layer = layui.layer;
+        var admin = layui.admin;
+        var form = layui.form;
+        var formSelects = layui.formSelects;
+
+        // 回显数据
+        var editData = admin.getTempData('orderlist_detail_form');
+        $('#orderlist_detail_form').attr('method', 'POST');
+        if (JSON.stringify(editData) != '{}') {
+            /*$('#salesmanType').disabled = 'disabled';
+            $('#salesmanType').attr('disabled', true);*/
+            form.val('orderlist_detail_form', editData);
+        }
+        var editStatus = admin.getTempData('editStatus');
+        if(editStatus === 'true'){
+            console.info("修改财务记录:" + editStatus);
+            $(".hiddenDiv").css("display", "none");
+        }
+
+        form.render();//表单重新渲染
+
+        // 表单提交事件
+        form.on('submit(orderlist_detail_form_submit)', function (data) {
+            var contacts = data.field.contacts;
+            var developer = data.field.developer;
+            var contactsPhone = data.field.contactsPhone;
+            var salesman = data.field.salesman;
+            var business = data.field.business;
+            var cost = data.field.cost;
+            var downPayment = data.field.downPayment;
+            var finalPayment = data.field.finalPayment;
+            var discountAmount = data.field.discountAmount;
+            var remarks = data.field.remarks;
+            var texture = data.field.texture;
+
+            if (contacts.length > 32) {
+                layer.msg("联系人不能大于32位", {icon: 2});
+                return false;
+            }
+            if (developer.length > 32) {
+                layer.msg("设计师不能大于32位", {icon: 2});
+                return false;
+            }
+            if (salesman.length > 32) {
+                layer.msg("开单员不能大于32位", {icon: 2});
+                return false;
+            }
+            if (business.length > 32) {
+                layer.msg("业务员不能大于32位", {icon: 2});
+                return false;
+            }
+            if (!isPhoneNo(contactsPhone)) {
+                layer.msg("请输入正确的负责人手机号", {icon: 2});
+                return false;
+            }
+            if (remarks.length > 255) {
+                layer.msg("备注不能大于255位", {icon: 2});
+                return false;
+            }
+            if (texture.length > 32) {
+                layer.msg("材质不能大于32位", {icon: 2});
+                return false;
+            }
+
+            if ((!issalesman(cost))
+                ||(!issalesman(finalPayment))
+                ||(!issalesman(downPayment))
+                ||(!issalesman(discountAmount))) {
+                layer.msg("请输入正确的金额", {icon: 2});
+                return false;
+            }
+            layer.load(2);
+
+            var id = $('#id').val();
+            var url = "/admin/orderlist";
+            var method = $('#orderlist_detail_form').attr('method');
+            var isSave = true;
+            if (id != null && id != '') {
+                isSave = false;
+                method = 'PUT';
+            }
+            admin.req(url, data.field, function (data) {
+                layer.closeAll('loading');
+                if (data.code == 0) {
+                    if (isSave) {
+                        layer.msg(data.msg, {icon: 1, time: 3000});
+                    } else {
+                        layer.msg(data.msg, {icon: 1});
+                    }
+                    admin.finishPopupCenter();
+                } else {
+                    layer.msg(data.msg, {icon: 2});
+                }
+            }, method);
+            return false;
+        });
+
+        // 验证手机号
+        function isPhoneNo(phone) {
+            var pattern = /^1[34578]\d{9}$/;
+            return pattern.test(phone);
+
+        };
+        // 金额
+        function issalesman(salesman) {
+            var pattern = /^([1-9]\d{0,9}|0)([.]?|(\.\d{1,2})?)$/;
+            return pattern.test(salesman);
+
+        };
+
+    });
+
+</script>

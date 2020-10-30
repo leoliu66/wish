@@ -1,0 +1,118 @@
+<!-- 学生管理弹窗 @author leo -->
+<form id="student_manage_from" lay-filter="student_manage_from" class="layui-form model-form">
+    <input id="id" name="id" type="hidden"/>
+    <div class="layui-form-item">
+        <label class="layui-form-label">班级</label>
+        <div class="layui-input-block">
+            <input id="stuClass" name="stuClass" placeholder="请输入班级" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">姓名</label>
+        <div class="layui-input-block">
+            <input id="stuName" name="stuName" placeholder="请输入姓名" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+
+	    <div class="layui-form-item">
+	        <label class="layui-form-label">学号</label>
+	        <div class="layui-input-block">
+	            <input id="stuNo" name="stuNo" placeholder="请输入学号" type="text" class="layui-input" maxlength="200"
+	                   lay-verify="required"/>
+	        </div>
+	    </div>
+    
+    <div class="layui-form-item">
+        <label class="layui-form-label">手机号</label>
+        <div class="layui-input-block">
+            <input id="parentPhone" name="parentPhone" placeholder="请输入手机号" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="student_manage_from_submit" data-auth="schpay:basics:student:add" lay-submit>保存</button>
+    </div>
+</form>
+
+<script>
+
+
+layui.use(['layer', 'admin', 'form', 'formSelects'], function () {
+	
+    var layer = layui.layer;
+    var admin = layui.admin;
+    var form = layui.form;
+    var formSelects = layui.formSelects;
+
+    var stuClass = 0;
+    var stuName = 0;
+    var stuNo = 0;
+    var parentPhone= 0;
+    var id = 0;
+    var editDate = admin.getTempData('student_manage_from');
+    $('#student_manage_from').attr('method', 'POST');
+   
+    if (JSON.stringify(editDate)!='{}') {
+    	$('#stuNo').disabled='disabled';
+    	$('#stuNo').attr('disabled',true);
+    	stuClass = editDate.stuClass;
+    	stuName = editDate.stuName;
+    	stuNo = editDate.stuNo;
+    	parentPhone = editDate.parentPhone;
+    	id = editDate.id;
+        form.val('student_manage_from', editDate);
+    }
+    form.render();//表单重新渲染
+
+    // 表单提交事件
+    form.on('submit(student_manage_from_submit)', function (data) {
+    	var stuClass = data.field.stuClass;
+    	var stuName = data.field.stuName;
+    	var stuNo = data.field.stuNo;
+    	var mobile = data.field.parentPhone;
+    	
+    	if(stuClass.length>30){
+    		layer.msg("班级长度不能大于30", {icon: 2});
+    		return false;
+    	}
+    	if(stuName.length>30){
+    		layer.msg("姓名长度不能大于30", {icon: 2});
+    		return false;
+    	}
+    	if(stuNo.length>30){
+    		layer.msg("学号长度不能大于30", {icon: 2});
+    		return false;
+    	}
+    	if(!isPhoneNo(mobile)){
+    		layer.msg("请输入正确的手机号码", {icon: 2});
+    		return false;
+    	}
+        layer.load(2);
+        admin.req('/admin/student/addOrUpdateStudent', data.field, function (data) {
+            layer.closeAll('loading');
+            if (data.success) {
+                layer.msg(data.message, {icon: 1});
+                admin.finishPopupCenter();
+            } else {
+            	if(data.code == "-10"){
+            		admin.finishPopupCenter();
+            	}
+                layer.msg(data.message, {icon: 2});
+            }
+        }, $('#student_manage_from').attr('method'));
+        return false;
+    });
+ // 验证手机号
+    function isPhoneNo(phone) {
+        var pattern = /^1[34578]\d{9}$/;
+        return pattern.test(phone);
+
+   };
+});
+</script>

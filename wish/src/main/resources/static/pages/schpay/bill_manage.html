@@ -1,0 +1,247 @@
+<!-- 账单批次 @author leo -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-form toolbar">
+            创建时间：<input id="createStartDate" name="createStartDate" class="layui-input search-input" type="text" placeholder="请输入开始时间"/>&emsp;
+          至&emsp;<input id="createEndDate" name="createEndDate" class="layui-input search-input" type="text" placeholder="请输入结束时间"/>&emsp;
+             创建人：<input id="createByy" name="createByy" class="layui-input search-input" type="text" placeholder="请输入创建人"/>&emsp;
+         <button id="bill-btn-search" class="layui-btn icon-btn bill_auth" data-auth="schpay:paybill:inputbill:query"><i class="layui-icon">&#xe615;</i>搜索</button>
+         <button id="bill-btn-import" class="layui-btn icon-btn bill_auth" data-auth="schpay:paybill:inputbill:import"><i class="layui-icon">&#xe615;</i>导入账单</button>
+         <button id="bill-btn-exprotDownload" class="layui-btn icon-btn bill_auth" data-auth="schpay:paybill:inputbill:download"><i class="layui-icon">&#xe654;</i>下载导入模板</button>
+        </div>
+        <div id="userLayTable">
+            <table class="layui-table" id="bill-table" lay-filter="bill-table"></table>
+        </div>
+    </div>
+</div>
+<style>
+    #userLayTable tbody .layui-table-click{background-color: #ccffeb !important;}
+</style>
+<script>
+    var pageIndex = 1;
+    layui.use(['form', 'table', 'util', '_config', 'admin','laydate','index'], function () {
+        var form = layui.form;
+        var index = layui.index;
+        var laydate = layui.laydate;
+        var table = layui.table;
+        var _config = layui._config;
+        var layer = layui.layer;
+        var util = layui.util;
+        var admin = layui.admin;
+        var createStartDate = $("#createStartDate").val();
+        var createEndDate = $("#createEndDate").val();
+        var createBy = $("#createByy").val();
+		
+        // 渲染表格
+        table.render({
+            elem: '#bill-table',
+            url: _config.base_server + '/admin/bill/querypayBillBatchList',
+            method: 'GET',
+            where: {
+            	createStartDate:createStartDate,
+            	createEndDate:createEndDate,
+            	createBy:createBy
+            },
+            page: true,
+            even: true, //开启隔行背景
+            limit:10,
+            cols: [[
+                {type: 'numbers'},
+                {field: 'batchNo', sort: false, title: '账单批次'},
+                {field: 'billBatchNum', sort: false, title: '账单条数'},
+                {field: 'payNum', sort: false, title: '已缴费条数'},
+                {
+                    sort: true, templet: function (d) {
+                        return d.totalAmount/100.0;
+                    }, title: '应收总金额(元)'
+                },
+                {field: 'billBatchName', sort: false, title: '账单名'},
+                {
+                    sort: true, templet: function (d) {
+                        return d.receiveAmount/100.0;
+                    }, title: '已收金额(元)'
+                },
+                {field: 'createTime', sort: false, title: '创建时间'},
+                {field: 'createUserName', sort: false, title: '创建人'},
+                {align: 'center', templet: function(d){
+                    var auth = JSON.parse(sessionStorage.getItem("auth"));
+                    var page = location.hash.substring(2);
+                    var btn = '';
+                    if(auth[page] && auth[page]['schpay:paybill:inputbill:detail']){
+                        btn += '<a class="bill_auth layui-btn layui-btn-xs" target="_blank" href="#!schpay_paybill_billdetail"  lay-event="detail">查看明细</a>';
+                    }
+                    if(btn == ''){
+                        return '无权限';
+                    }else{
+                        return btn;
+                    }
+                }, title: '操作'},
+                {align: 'center', templet: function(d){
+                	var billBatchStatus = d.billBatchStatus;
+                	if(billBatchStatus == "Y"){
+                		return "已激活";
+                	}else if(billBatchStatus == "N"){
+                        var auth = JSON.parse(sessionStorage.getItem("auth"));
+                        var page = location.hash.substring(2);
+                        var btn = '';
+                        if(auth[page] && auth[page]['schpay:paybill:inputbill:active']){
+                            btn += '<a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="active">待激活</a>';
+                        }
+                        if(btn == ''){
+                            return '无权限';
+                        }else{
+                            return btn;
+                        }
+                	}
+                }, title: '账单激活'}
+            ]],
+            done: function(res, curr, count){
+                var data = res.data;
+                pageIndex=curr;
+                console.info("page:"+pageIndex);
+                $('.layui-table-body tr').each(function(i){
+                    var index = $(this).attr('data-index');
+                    $(this).click(function(){
+                        var fals = $(this).hasClass('layui-table-click');
+                        if(!fals){
+                            $(this).addClass('layui-table-click');
+                        }else{
+                            $(this).removeClass('layui-table-click');
+                        }
+                    });
+
+                });
+            }
+        });
+		//添加时间
+        laydate.render({
+    		elem: '#createStartDate' //指定元素
+  		});
+        laydate.render({
+    		elem: '#createEndDate' //指定元素
+  		});
+        
+    	//日期比较
+    	function compareDate(s1,s2){
+    		  return ((new Date(s1.replace(/-/g,"\/")))>(new Date(s2.replace(/-/g,"\/"))));
+    	}
+        
+        // 添加按钮点击事件
+        $('#bill-btn-add').click(function () {
+            showEditModel(null,null,'添加账单');
+        });
+
+        // 工具条点击事件
+        table.on('tool(bill-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'active') { //激活账单
+            		layer.confirm('确定激活此账单批次吗？', function (i) {
+                        layer.close(i);
+                        layer.load(2);
+                        admin.req('/admin/bill/activeBillBatch?id=' + obj.data.id, {}, function (data) {
+                            layer.closeAll('loading');
+                            if (data.success) {
+                                layer.msg(data.message, {icon: 1, time: 5000});
+                               
+                                table.reload('bill-table',{
+                              	  page: {
+                              	    curr: 1 //重新从第 1 页开始
+                              	  }
+                              	 ,done: function(res, curr, count){
+                              	     this.where={};
+                              	 }
+                              });
+                            } else {
+                                layer.msg(data.message, {icon: 2});
+                            }
+                        }, 'post');
+                    });
+            }else if (layEvent === 'detail'){
+            	var batchNo = data.batchNo;
+            	admin.putTempData('bill_detail_tab', batchNo);
+            }
+        });
+        
+     
+
+        //修改或添加
+        var showEditModel = function (data,obj,title) {
+            console.info("showEditModel:"+JSON.stringify(data));
+            if(data){
+                admin.putTempData('tb_bill', data);
+                admin.popupCenter({
+                    title: title,
+                    path: 'pages/sys/school_bill_from.html',
+                    finish: function () {
+                        table.reload('bill-table', {});
+                    }
+                });
+
+            }else{
+                admin.putTempData('tb_bill', {});
+                admin.popupCenter({
+                    title: title,
+                    path: 'pages/sys/bill_from.html',
+                    finish: function () {
+                        table.reload('bill-table', {});
+                    }
+                });
+            }
+
+        };
+
+        // 搜索按钮点击事件
+        $('#bill-btn-search').click(function () {
+        	var createStartDate = $("#createStartDate").val();
+            var createEndDate = $("#createEndDate").val();
+            var createBy = $("#createByy").val();
+     		if(compareDate(createStartDate,createEndDate)){
+     			layer.msg('请选择正确的时间段!', {icon: 2});
+     			return false;
+     		}
+            
+            table.reload('bill-table', {page: {
+                    curr: 1 //重新从第 1 页开始
+                },where: {createStartDate:createStartDate,createEndDate:createEndDate,createBy:createBy}});
+        });
+        // 模板导出
+        $('#bill-btn-exprotDownload').click(function () {
+        	 window.location.href=_config.base_server + '/admin/bill/downloadBillExcel';
+        });
+     	//模板导入
+
+        layui.use(['element','upload'], function() {
+        	element = layui.element;
+        	upload = layui.upload;
+         
+        	//指定允许上传的文件类型
+        	upload.render({
+        	  elem: '#bill-btn-import',
+        	  url: _config.base_server + '/admin/bill/billImport',
+        	  accept: 'file', //普通文件
+              multiple: true,
+        	  done: function(res){
+       			  if(res.success){
+       				layer.msg(res.message, {icon: 1,time:3000});
+       			  }else{
+         			layer.msg(res.message, {icon: 2,time:3000});
+       			  }
+       			table.reload('bill-table', {});
+        	   }
+        	});
+        });
+
+    });
+
+    var auth = JSON.parse(sessionStorage.getItem("auth"));
+    var page = location.hash.substring(2);
+    $(".bill_auth").each(function(index, item) {
+        var buttonAuth = $(item).attr("data-auth");
+        if( !auth[page] || auth[page][buttonAuth] != 1 ){
+            $(item).remove();
+        }
+    });
+
+</script>

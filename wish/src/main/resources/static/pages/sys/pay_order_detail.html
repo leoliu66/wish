@@ -1,0 +1,151 @@
+<!-- 订单详情 @author leo -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-form toolbar">
+        平台订单号：<input id="transactionNo" name="transactionNo" class="layui-input search-input" type="text" placeholder="请输入平台订单号"/>&emsp;
+            商户订单号：<input id="outTradeNo" name="outTradeNo" class="layui-input search-input" type="text" placeholder="请输入商户订单号"/>&emsp;
+            第三方订单号：<input id="outTransactionId" name="outTransactionId" class="layui-input search-input" type="text" placeholder="请输入第三方订单号"/>&emsp;
+       <button id="pay_order_detail-search" class="layui-btn icon-btn order_detail_auth" data-auth="sys:trade:orderdetail:qry"><i class="layui-icon">&#xe615;</i>搜索</button>
+        </div>
+		<div id="userLayTable">
+        	<table class="layui-table" id="pay_order_detail-table" lay-filter="pay_order_detail-table"></table>
+        </div>
+    </div>
+</div>
+<style>
+	#userLayTable tbody .layui-table-click{background-color: #ccffeb !important;}
+</style>
+<script>
+	
+	if($(".search-input").width()<200){
+		$(".search-input").css("width","200px");
+	};
+
+    var pageIndex = 1;
+    layui.use(['form', 'table', 'util', '_config', 'admin','formSelects','laydate'], function () {
+    	var laydate = layui.laydate;
+    	var form = layui.form;
+        var table = layui.table;
+        var _config = layui._config;
+        var layer = layui.layer;
+        var util = layui.util;
+        var admin = layui.admin;
+        var formSelects = layui.formSelects;
+        var transactionNo = $("#transactionNo").val();
+        var outTradeNo = $("#outTradeNo").val();
+        var outTransactionId = $('#outTransactionId').val();//商户号        
+		
+        // 渲染表格
+        table.render({
+            elem: '#pay_order_detail-table',
+            url: _config.base_server + '/order/giveShopOrderDetail',
+            method: 'GET',
+            where: {
+            	transactionNo:transactionNo,
+            	outTradeNo:outTradeNo,
+            	outTransactionId:outTransactionId
+            },
+            page: false,
+            even: false, //开启隔行背景
+            limit:10,
+            cols: [[
+            	 {
+                 	field:'stimes',sort: true,title: '交易时间'
+                 },
+                {field: 'mchId', sort: false, title: '商户号'},
+                {field: 'outTradeNo', sort:false, title: '商户订单号'},
+                {field: 'transactionNo', sort:false, title: '平台订单号'},
+                {field: 'customerCode', sort:false, title: '商户编号'},
+                {field: 'custnam', sort:false, title: '商户名称'},
+                {field: 'payPlatform', templet: function(d){
+                	var payPlatform = d.payPlatform;
+                	if(payPlatform=='pay.weixin.raw.app'){
+                		return "微信app支付";
+                	}else if(payPlatform=='pay.cmb.wappay'){
+                		return "一网通";
+                	}else{
+                		return "支付宝";
+                	}
+                }, title: '支付类型'},
+                {field: 'payStatus', templet: function(d){
+                	var payStatus = d.payStatus;
+                	if(payStatus=='NOTPAY'){
+                		return "未支付";
+                	}else if(payStatus=='PAYERROR'){
+                		return "支付失败";
+                	}else if(payStatus=='SUCCESS'){
+                		return "支付成功";
+                	}else if(payStatus=='REFUND'){
+                		return "转入退款";
+                	}else{
+                		return "已关闭";
+                	}
+                }, title: '交易状态'},
+                {field: 'totalFee', sort:false,templet: function(d){
+                	var payPlatform = d.totalFee / 100 +"";                    	
+                	var aNew;
+                    var re = /([0-9]+\.[0-9]{2})[0-9]*/;
+                    return aNew = payPlatform.replace(re,"$1");
+                },title: '支付金额'}
+            ]],
+            done: function(res, curr, count){
+            	var data = res.data;
+            	pageIndex=curr;
+            	console.info("page:"+pageIndex);
+            	$('.layui-table-body tr').each(function(i){
+	            	var index = $(this).attr('data-index');
+	            	$(this).click(function(){
+	            		var fals = $(this).hasClass('layui-table-click');
+	                	if(!fals){
+	                		$(this).addClass('layui-table-click');
+	                	}else{
+	                		$(this).removeClass('layui-table-click');
+	                	}
+	            	});
+
+            	});
+            }
+        });
+
+        
+      
+       
+           
+          
+        
+          
+          
+
+        // 搜索按钮点击事件
+         $('#pay_order_detail-search').click(function () {
+        	 var transactionNo = $("#transactionNo").val();
+             var outTradeNo = $("#outTradeNo").val();
+             var outTransactionId = $('#outTransactionId').val();//商户号        
+            table.reload('pay_order_detail-table',
+            {
+            	where: {
+            		transactionNo:transactionNo,
+                	outTradeNo:outTradeNo,
+                	outTransactionId:outTransactionId
+            },page: {
+        	    curr: 1 //重新从第 1 页开始
+      	    }
+            });
+        }); 
+          
+       
+    });
+
+	var auth = JSON.parse(sessionStorage.getItem("auth"));
+	var page = location.hash.substring(2);
+	$(".order_detail_auth").each(function(index, item) {
+	    var buttonAuth = $(item).attr("data-auth");
+	    if( !auth[page] || auth[page][buttonAuth] != 1 ){
+	        $(item).remove();
+	    }
+	});
+	
+	
+	
+
+</script>

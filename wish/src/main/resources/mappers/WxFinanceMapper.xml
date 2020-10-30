@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.leo.rdp.wish.dao.WxFinanceMapper">
+  <resultMap id="BaseResultMap" type="cn.leo.rdp.wish.entity.WxFinance">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="new_record" jdbcType="VARCHAR" property="newRecord" />
+    <result column="order_id" jdbcType="VARCHAR" property="orderId" />
+    <result column="principal" jdbcType="VARCHAR" property="principal" />
+    <result column="principal_phone" jdbcType="VARCHAR" property="principalPhone" />
+    <result column="money" jdbcType="DECIMAL" property="money" />
+    <result column="money_type" jdbcType="VARCHAR" property="moneyType" />
+    <result column="resource" jdbcType="VARCHAR" property="resource" />
+    <result column="images" jdbcType="VARCHAR" property="images" />
+    <result column="create_by" jdbcType="VARCHAR" property="createBy" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="update_by" jdbcType="VARCHAR" property="updateBy" />
+    <result column="update_date" jdbcType="TIMESTAMP" property="updateDate" />
+    <result column="remarks" jdbcType="VARCHAR" property="remarks" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, order_id, new_record, principal, principal_phone, money, money_type, resource, images,
+    create_by, create_date, update_by, update_date, remarks
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from wx_finance
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from wx_finance
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="cn.leo.rdp.wish.entity.WxFinance">
+    insert into wx_finance (id, order_id, new_record,
+      principal, principal_phone, money,
+      money_type, resource, images,
+      create_by, create_date, update_by,
+      update_date, remarks)
+    values (#{id,jdbcType=BIGINT}, #{orderId,jdbcType=VARCHAR}, #{newRecord,jdbcType=VARCHAR},
+      #{principal,jdbcType=VARCHAR}, #{principalPhone,jdbcType=VARCHAR}, #{money,jdbcType=DECIMAL},
+      #{moneyType,jdbcType=VARCHAR}, #{resource,jdbcType=VARCHAR}, #{images,jdbcType=VARCHAR},
+      #{createBy,jdbcType=VARCHAR}, #{createDate,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR},
+      #{updateDate,jdbcType=TIMESTAMP}, #{remarks,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="cn.leo.rdp.wish.entity.WxFinance">
+    insert into wx_finance
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="orderId != null">
+        order_id,
+      </if>
+      <if test="newRecord != null">
+        new_record,
+      </if>
+      <if test="principal != null">
+        principal,
+      </if>
+      <if test="principalPhone != null">
+        principal_phone,
+      </if>
+      <if test="money != null">
+        money,
+      </if>
+      <if test="moneyType != null">
+        money_type,
+      </if>
+      <if test="resource != null">
+        resource,
+      </if>
+      <if test="images != null">
+        images,
+      </if>
+      <if test="createBy != null">
+        create_by,
+      </if>
+      <if test="createDate != null">
+        create_date,
+      </if>
+      <if test="updateBy != null">
+        update_by,
+      </if>
+      <if test="updateDate != null">
+        update_date,
+      </if>
+      <if test="remarks != null">
+        remarks,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="orderId != null">
+        #{orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="newRecord != null">
+        #{newRecord,jdbcType=VARCHAR},
+      </if>
+      <if test="principal != null">
+        #{principal,jdbcType=VARCHAR},
+      </if>
+      <if test="principalPhone != null">
+        #{principalPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null">
+        #{money,jdbcType=DECIMAL},
+      </if>
+      <if test="moneyType != null">
+        #{moneyType,jdbcType=VARCHAR},
+      </if>
+      <if test="resource != null">
+        #{resource,jdbcType=VARCHAR},
+      </if>
+      <if test="images != null">
+        #{images,jdbcType=VARCHAR},
+      </if>
+      <if test="createBy != null">
+        #{createBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateBy != null">
+        #{updateBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updateDate != null">
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="remarks != null">
+        #{remarks,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="cn.leo.rdp.wish.entity.WxFinance">
+    update wx_finance
+    <set>
+      <if test="orderId != null">
+        order_id = #{orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="newRecord != null">
+        new_record = #{newRecord,jdbcType=VARCHAR},
+      </if>
+      <if test="principal != null">
+        principal = #{principal,jdbcType=VARCHAR},
+      </if>
+      <if test="principalPhone != null">
+        principal_phone = #{principalPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null">
+        money = #{money,jdbcType=DECIMAL},
+      </if>
+      <if test="moneyType != null">
+        money_type = #{moneyType,jdbcType=VARCHAR},
+      </if>
+      <if test="resource != null">
+        resource = #{resource,jdbcType=VARCHAR},
+      </if>
+      <if test="images != null">
+        images = #{images,jdbcType=VARCHAR},
+      </if>
+      <if test="createBy != null">
+        create_by = #{createBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        create_date = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateBy != null">
+        update_by = #{updateBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updateDate != null">
+        update_date = #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="remarks != null">
+        remarks = #{remarks,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="cn.leo.rdp.wish.entity.WxFinance">
+    update wx_finance
+    set
+      order_id = #{orderId,jdbcType=VARCHAR},
+      new_record = #{newRecord,jdbcType=VARCHAR},
+      principal = #{principal,jdbcType=VARCHAR},
+      principal_phone = #{principalPhone,jdbcType=VARCHAR},
+      money = #{money,jdbcType=DECIMAL},
+      money_type = #{moneyType,jdbcType=VARCHAR},
+      resource = #{resource,jdbcType=VARCHAR},
+      images = #{images,jdbcType=VARCHAR},
+      create_by = #{createBy,jdbcType=VARCHAR},
+      create_date = #{createDate,jdbcType=TIMESTAMP},
+      update_by = #{updateBy,jdbcType=VARCHAR},
+      update_date = #{updateDate,jdbcType=TIMESTAMP},
+      remarks = #{remarks,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="findListByVo" parameterType="cn.leo.rdp.wish.allbean.vo.QueryFinanceInfoVo" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from wx_finance t
+    <where>
+      <if test="principal !=null and principal!=''">
+        and t.principal like concat('%', #{principal},'%')
+      </if>
+      <if test="principalPhone !=null and principalPhone!=''">
+        and t.principal_phone like concat('%', #{principalPhone},'%')
+      </if>
+      <if test="moneyType !=null and moneyType!=''">
+        and t.money_type = #{moneyType}
+      </if>
+      <if test="createBy !=null and createBy!=''">
+        and t.create_by = #{createBy}
+      </if>
+      <if test="newRecord !=null and newRecord!=''">
+        and t.new_record = #{newRecord}
+      </if>
+      <if test="sdstrdate !=null">
+        and t.create_date <![CDATA[>=]]> #{sdstrdate}
+      </if>
+      <if test="edstrdate !=null">
+        and t.create_date <![CDATA[<=]]> #{edstrdate}
+      </if>
+
+    </where>
+    <if test="sortField != null and sortField != '' and direction != null and direction !=''">
+      order by #{sortField} #{direction}
+    </if>
+  </select>
+</mapper>

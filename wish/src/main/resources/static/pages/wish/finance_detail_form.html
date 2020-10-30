@@ -1,0 +1,218 @@
+<!-- 财务明细弹窗 @author leo -->
+<form id="finance_detail_form" lay-filter="finance_detail_form" class="layui-form model-form">
+    <input id="id" name="id" type="hidden"/>
+    <input id="images" name="images" type="hidden"/>
+    <div class="layui-form-item">
+        <label class="layui-form-label">负责人</label>
+        <div class="layui-input-block">
+            <input id="principal" name="principal" placeholder="请输入负责人" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">负责人手机</label>
+        <div class="layui-input-block">
+            <input id="principalPhone" name="principalPhone" placeholder="请输入负责人手机号" type="text" class="layui-input"
+                   maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">金额（元）</label>
+        <div class="layui-input-block">
+            <input id="money" name="money" placeholder="请输入金额" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required" required/>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">财务类型</label>
+        <div class="layui-input-block">
+            <select id="moneyType" name="moneyType" lay-filter="moneyType" lay-verify="required">
+                <option value="">请选择财务类型</option>
+                <option value="income">收入</option>
+                <option value="expend">支出</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">来源或去向</label>
+        <div class="layui-input-block">
+            <input id="resource" name="resource" placeholder="请输入来源或去向" type="text" class="layui-input" maxlength="200"
+                   lay-verify="required"/>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <input id="remarks" name="remarks" placeholder="请输入备注" type="text" class="layui-input" maxlength="200"
+            />
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">凭证</label>
+        <div class="layui-input-inline uploadHeadImage">
+            <div class="layui-upload-drag" id="headImg">
+                <i class="layui-icon"></i>
+                <p id="demoText"><span style="color: #FF5722;">点击上传图片</span></p>
+            </div>
+        </div>
+    </div>
+    <!--<div class="layui-input-inline">
+        <div class="layui-upload-list">
+            <img class="layui-upload-img headImage" src="http://t.cn/RCzsdCq" id="demo1">
+            <p id="demoText"></p>
+        </div>
+    </div>-->
+
+    <div class="layui-form-item model-form-footer">
+        <button class="layui-btn layui-btn-primary" ew-event="closeDialog" type="button">取消</button>
+        <button class="layui-btn" lay-filter="finance_detail_form_submit" data-auth="sys:finance:detail:add" lay-submit>
+            保存
+        </button>
+    </div>
+</form>
+
+<script>
+    layui.use(['layer', 'admin', 'form', 'formSelects'], function () {
+        var layer = layui.layer;
+        var admin = layui.admin;
+        var form = layui.form;
+        var formSelects = layui.formSelects;
+
+        // 回显数据
+        var editData = admin.getTempData('finance_detail_form');
+        $('#finance_detail_form').attr('method', 'POST');
+        if (JSON.stringify(editData) != '{}') {
+            /*$('#moneyType').disabled = 'disabled';
+            $('#moneyType').attr('disabled', true);*/
+            form.val('finance_detail_form', editData);
+        }
+        form.render();//表单重新渲染
+
+        // 表单提交事件
+        form.on('submit(finance_detail_form_submit)', function (data) {
+            var principal = data.field.principal;
+            var money = data.field.money;
+            var resource = data.field.resource;
+            var principalPhone = data.field.principalPhone;
+            var images = data.field.images;
+            var remarks = data.field.remarks;
+
+            if (principal.length > 32) {
+                layer.msg("负责人不能大于32位", {icon: 2});
+                return false;
+            }
+            if (resource.length > 32) {
+                layer.msg("来源或者去向不能大于32位", {icon: 2});
+                return false;
+            }
+            if (images == '' || images == null) {
+                layer.msg("请上传图片", {icon: 2});
+                return false;
+            }
+            if (remarks.length > 255) {
+                layer.msg("备注不能大于255位", {icon: 2});
+                return false;
+            }
+            if (!isPhoneNo(principalPhone)) {
+                layer.msg("请输入正确的负责人手机号", {icon: 2});
+                return false;
+            }
+            if (!isMoney(money)) {
+                layer.msg("请输入正确的金额", {icon: 2});
+                return false;
+            }
+            layer.load(2);
+
+            var id = $('#id').val();
+            var url = "/admin/finance";
+            var method = $('#finance_detail_form').attr('method');
+            var isSave = true;
+            if (id != null && id != '') {
+                isSave = false;
+                method = 'PUT';
+            }
+            admin.req(url, data.field, function (data) {
+                layer.closeAll('loading');
+                if (data.code == 0) {
+                    if (isSave) {
+                        layer.msg(data.msg, {icon: 1, time: 3000});
+                    } else {
+                        layer.msg(data.msg, {icon: 1});
+                    }
+                    admin.finishPopupCenter();
+                } else {
+                    layer.msg(data.msg, {icon: 2});
+                }
+            }, method);
+            return false;
+        });
+
+        // 验证手机号
+        function isPhoneNo(phone) {
+            var pattern = /^1[34578]\d{9}$/;
+            return pattern.test(phone);
+
+        };
+        // 金额
+        function isMoney(money) {
+            var pattern = /^([1-9]\d{0,9}|0)([.]?|(\.\d{1,2})?)$/;
+            return pattern.test(money);
+
+        };
+
+    });
+
+    layui.use(["jquery", "upload", "form", "layer", "element"], function () {
+        var _config = layui._config;
+        var $ = layui.$,
+            element = layui.element,
+            layer = layui.layer,
+            upload = layui.upload;
+        //上传
+        var uploadInst = upload.render({
+            elem: '#headImg',
+            url: _config.base_server + '/admin/finance/upload/certificate',
+            size: 500,
+            before: function (obj) {
+                /*//预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                    $('#demo1').attr('src', result); //图片链接（base64）
+                });*/
+            }, done: function (res) {
+                //如果上传失败
+                if (res.code != 0) {
+                    //演示失败状态，并实现重传
+                    var demoText = $('#demoText');
+                    demoText.html('<span style="color: #ff5722;">上传失败!</span> <a class="layui-btn layui-btn-mini demo-reload">重试</a>');
+                    demoText.find('.demo-reload').on('click', function () {
+                        uploadInst.upload();
+                    });
+
+                    return layer.msg('上传失败！', {icon: 2});
+                } else {
+                    //上传成功
+                    //打印后台传回的地址: 把地址放入一个隐藏的input中, 和表单一起提交到后台
+                    //console.log(res.data.src);
+                    $('#images').val(res.data.src);
+                    var demoText = $('#demoText');
+                    demoText.html('<span style="color: #000000fc;">上传成功!</span>');
+                }
+            }, error: function () {
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #ff5722;">上传失败!</span> <a class="layui-btn layui-btn-mini demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            }
+        });
+        element.init();
+    });
+</script>

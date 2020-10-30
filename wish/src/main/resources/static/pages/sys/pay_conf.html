@@ -1,0 +1,198 @@
+<!-- 支付配置 @author leo -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-form toolbar">
+            厂号：<input id="factorycod" name="factorycod" class="layui-input search-input" type="text" placeholder="请输入厂号"/>&emsp;
+            商户号：<input id="mchId" name="mchId" class="layui-input search-input" type="text" placeholder="请输入商户号"/>&emsp;
+            <button id="pay_conf-btn-search" class="layui-btn icon-btn conf_auth" data-auth="sys:pay:conf:qry"><i class="layui-icon">&#xe615;</i>搜索</button>
+            <button id="pay_conf-btn-add" class="layui-btn icon-btn conf_auth" data-auth="sys:pay:conf:edit"><i class="layui-icon">&#xe654;</i>添加</button>
+        </div>
+		<div id="userLayTable">
+        	<table class="layui-table" id="pay_conf-table" lay-filter="pay_conf-table"></table>
+        </div>
+    </div>
+</div>
+<style>
+	#userLayTable tbody .layui-table-click{background-color: #ccffeb !important;}
+</style>
+<script>
+    var pageIndex = 1;
+    layui.use(['form', 'table', 'util', '_config', 'admin'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var _config = layui._config;
+        var layer = layui.layer;
+        var util = layui.util;
+        var admin = layui.admin;
+        var factorycod = $('#factorycod').val();//厂号
+        var mchId = $('#mchId').val();//商户号        
+
+        // 渲染表格
+        table.render({
+            elem: '#pay_conf-table',
+            url: _config.base_server + '/conf/getMchConfList',
+            method: 'GET',
+            where: {
+            	factorycod:factorycod,
+            	mchId:mchId
+            },
+            page: true,
+            even: true, //开启隔行背景
+            limit:10,
+            cols: [[
+                {type: 'numbers'},
+                {field: 'factorycod', sort: true, title: '厂号'},
+                {field: 'mchId', sort: true, title: '商户号'},
+                {field: 'signAgentno', sort:true, title: '渠道号'},
+                {
+                    sort: true, templet: function (d) {
+                        return util.toDateString(d.createDate);
+                    }, title: '创建时间'
+                },
+                {
+                    sort: true, templet: function (d) {
+                        return util.toDateString(d.updateDate);
+                    }, title: '修改时间'
+                },
+                {align: 'center', templet: function(d){
+                	var auth = JSON.parse(sessionStorage.getItem("auth"));
+                	var page = location.hash.substring(2);
+                	var btn = '';
+                	if(auth[page] && auth[page]['sys:pay:conf:edit']){
+                		btn += '<a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>';
+            	    }
+                	if(auth[page] && auth[page]['sys:pay:conf:delete']){
+                		btn += '<a class="layui-btn layui-btn-xs" lay-event="del">删除</a>';
+            	    }
+                	if(btn == ''){
+                		return '无权限';
+                	}else{
+                		return btn;
+                	}
+                }, title: '操作'}
+            ]],
+            done: function(res, curr, count){
+            	var data = res.data;
+            	pageIndex=curr;
+            	console.info("page:"+pageIndex);
+            	$('.layui-table-body tr').each(function(i){
+	            	var index = $(this).attr('data-index');
+	            	$(this).click(function(){
+	            		var fals = $(this).hasClass('layui-table-click');
+	                	if(!fals){
+	                		$(this).addClass('layui-table-click');
+	                	}else{
+	                		$(this).removeClass('layui-table-click');
+	                	}
+	            	});
+
+            	});
+            }
+        });
+
+        // 添加按钮点击事件
+         $('#pay_conf-btn-add').click(function () {
+            showEditModel(null,null,'添加配置');
+        }); 
+
+        // 工具条点击事件
+         table.on('tool(pay_conf-table)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+			
+            if (layEvent === 'edit') { // 修改
+                showEditModel(data,obj,'修改配置');
+            } else if (layEvent === 'reset') { // 重置密码
+                layer.confirm('确定重置此用户的密码吗？', function (i) {
+                    layer.close(i);
+                    layer.load(2);
+                    admin.req('/sys/user/initPwd?id=' + obj.data.id, {}, function (data) {
+                        layer.closeAll('loading');
+                        if (data.code == 0) {
+                            layer.msg(data.msg, {icon: 1, time: 5000});
+                        } else {
+                            layer.msg(data.msg, {icon: 2});
+                        }
+                    }, 'post');
+                });
+            }else if(layEvent === 'del'){
+            	showDelModel(data,obj);
+            }
+        }); 
+
+        //修改或添加
+         var showEditModel = function (data,obj,title) {
+        	 console.info("showEditModel:"+JSON.stringify(data));
+            if(data){
+            	admin.putTempData('t_mch_conf', data);
+                admin.popupCenter({
+                    title: title,
+                    path: 'pages/sys/pay_conf_from.html',
+                    finish: function () {
+                        table.reload('pay_conf-table', {});
+                    }
+                });
+            	
+            }else{
+                admin.putTempData('t_mch_conf', {});
+                admin.popupCenter({
+                    title: title,
+                    path: 'pages/sys/pay_conf_from.html',
+                    finish: function () {
+                        table.reload('pay_conf-table', {});
+                    }
+                });
+            }
+            
+        };
+        
+        //删除
+        var showDelModel = function (data,obj){
+        	layer.confirm('确认删除配置？', function (i) {
+                layer.close(i);
+                layer.load(2);
+                admin.req('/conf/delMchConf?id=' + data.id, {}, function (data) {
+                	layer.closeAll('loading');
+                    if (data.code == 0) {
+                        layer.msg(data.msg, {icon: 1, time: 2000},function(){
+                        	obj.del();
+                            layer.close(i);
+                        });
+                        
+                        table.reload('pay_conf-table',{
+                        	  page: {
+                        	    curr: 1 //重新从第 1 页开始
+                        	  }
+                        	 ,done: function(res, curr, count){
+                        	     this.where={};
+                        	 }
+                        });
+                        
+                    } else {
+                        layer.msg(data.msg, {icon: 2});
+                    }
+                }, 'post');
+            });
+        }
+
+        // 搜索按钮点击事件
+         $('#pay_conf-btn-search').click(function () {
+        	 var factorycod = $('#factorycod').val();//厂号
+             var mchId = $('#mchId').val();//商户号
+            table.reload('pay_conf-table', {page: {
+        	    curr: 1 //重新从第 1 页开始
+      	  },where: {factorycod:factorycod,mchId:mchId}});
+        }); 
+        
+    });
+
+	var auth = JSON.parse(sessionStorage.getItem("auth"));
+	var page = location.hash.substring(2);
+	$(".conf_auth").each(function(index, item) {
+	    var buttonAuth = $(item).attr("data-auth");
+	    if( !auth[page] || auth[page][buttonAuth] != 1 ){
+	        $(item).remove();
+	    }
+	});
+
+</script>
