@@ -20,7 +20,6 @@
 	</properties>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>cn.leo</groupId>
 			<artifactId>leo-rdp</artifactId>
@@ -89,6 +88,17 @@
 		    <version>2.5.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<!-- 移除嵌入式tomcat插件 -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -115,18 +125,18 @@
 
 	<profiles>
 		<profile>
-			<id>dev</id>
+			<id>prod</id>
 			<build>
 				<finalName>wish</finalName>
 				<resources>
 					<resource>
-						<directory>src/main/resources</directory>
-						<!-- 打包时排除哪些内容 -->
+						<!--<directory>src/main/resources</directory>
+						&lt;!&ndash; 打包时排除哪些内容 &ndash;&gt;
 						<excludes>
 							<exclude>*.properties</exclude>
 							<exclude>*.yaml</exclude>
 							<exclude>logback-spring.xml</exclude>
-						</excludes>
+						</excludes>-->
 					</resource>
 				</resources>
 			</build>

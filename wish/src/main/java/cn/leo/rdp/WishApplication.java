@@ -35,18 +35,18 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableRedissonHttpSession(maxInactiveIntervalInSeconds = 2 * 60 * 60, keyPrefix = "rdp")
 @RestController
 @EnableCaching
-public class RapidDevelopmentPlatformApplication extends SpringBootServletInitializer {
+public class WishApplication extends SpringBootServletInitializer {
 
     /**
      * 启动服务main
      */
     public static void main(String[] args) {
-        SpringApplication.run(RapidDevelopmentPlatformApplication.class, args);
+        SpringApplication.run(WishApplication.class, args);
     }
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(RapidDevelopmentPlatformApplication.class);
+        return application.sources(WishApplication.class);
     }
 
     /**
