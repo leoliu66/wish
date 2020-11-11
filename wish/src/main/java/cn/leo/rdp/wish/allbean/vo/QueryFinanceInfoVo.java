@@ -1,10 +1,8 @@
 package cn.leo.rdp.wish.allbean.vo;
 
 import cn.leo.common.entity.QueryEntity;
-import cn.leo.rdp.wish.common.constants.BaseConstants;
 import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.Max;
 import java.util.Date;
 
 

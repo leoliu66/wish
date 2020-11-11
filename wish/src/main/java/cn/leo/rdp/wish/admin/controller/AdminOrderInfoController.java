@@ -169,7 +169,7 @@ public class AdminOrderInfoController extends BaseController {
      * @param vo
      * @return
      */
-    @PreAuthorize("hasAuthority('sys:orderlist:update')")
+    @PreAuthorize("hasAuthority('sys:orderlist:update') OR hasAuthority('sys:orderlist:updatestatus')")
     @PutMapping(value = "/orderlist")
     public ResponeModel updateOrder(@Validated WxOrderVo vo) {
         logger.info("修改订单入参：{}", JSON.toJSONString(vo));
